@@ -1,0 +1,110 @@
+syntax: glob
+
+#OS junk files
+[Tt]humbs.db
+*.DS_Store
+[Ii]ndex.dat
+[Ss]torage.dat
+
+#Visual Studio files
+*.[Oo]bj
+*.user
+*.aps
+*.pch
+*.pdb
+*.scc
+*.*scc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.tli
+*.bak
+*.[Cc]ache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.sdf
+*.opensdf
+*.unsuccessfulbuild
+*.opt
+*.plg
+ipch/
+obj/
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
+Ankh.Load
+Ankh.NoLoad
+*.vshost.*
+*.FileListAbsolute.txt
+*.clw
+*.eto
+*.vsmdi
+*.dbmdl
+*.dbproj.schemaview
+
+#ASP.NET
+[Pp]recompiled[Ww]eb/
+UpgradeLog*.*
+_[Uu]pgradeReport_[Ff]iles
+*.[Pp]ublish.xml
+
+#Silverlight
+[Cc]lientBin/
+*.xap
+
+#WCF
+*.svclog
+
+#SSRS and SSMS
+*.rdl.data
+*.sqlsuo
+
+#Tooling
+_[Rr]e[Ss]harper*/
+*.resharper
+[Tt]est[Rr]esult*
+*DXCore.Solution
+*.sln.docstates
+*.fbpInf
+lint.db
+
+#Build Scripts
+[Bb]uildArtifacts/
+[Ss]andcastle/[Dd]ata
+*.trends
+
+#Project files
+[Bb]uild/
+
+#TFS Files
+*.nlb
+
+#Other Source Control
+hgignore[.-]*
+ignore[.-]*
+svnignore[.-]*
+*.orig
+
+#CVS / Subversion files
+CVS/
+.svn
+
+# Office Temp Files
+~$*
+
+#NuGet
+packages/
+
+#Miscellaneous Files
+*.exe
+*.fb6lck
+*.fbl6
+*.patch
+*.sig
+*.tmp
+Backup*
