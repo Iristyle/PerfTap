@@ -1,0 +1,8 @@
+#\web service(_total)\bytes total/sec
+\web service(*)\bytes total/sec
+#\web service(_total)\total method requests/sec 
+\web service(*)\total method requests/sec 
+#\web service(_total)\isapi extension requests/sec
+\web service(*)\isapi extension requests/sec
+#\web service(_total)\current connections
+\web service(*)\current connections

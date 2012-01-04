@@ -1,0 +1,83 @@
+###############################################################################
+# OS CPU & Processor Counters
+###############################################################################
+
+# Percentage of elapsed time the processor spends executing non-idle threads
+#\Processor(_Total)\% Processor Time
+\Processor(*)\% Processor Time
+
+#split between privileged and user
+#\Processor(_Total)\% Privileged Time
+#\Processor(_Total)\% User Time
+\Processor(*)\% Privileged Time
+\Processor(*)\% User Time
+
+# Number of threads waiting for CPU cycles, where < 12 per CPU is good/fair, 
+#< 8 is better, < 4 is best
+\System\Processor Queue Length
+
+#Number of execution contexts switched in the last second, where >6000 is poor, 
+#<3000 is good, and <1500 is excellent.
+\System\Context Switches/sec
+
+#If context switches/sec suddenly starts increasing however, it may be an 
+#indicating of a malfunctioning device, especially if you are seeing a similar 
+#jump in the Processor(_Total)\Interrupts/sec counter on your machine. 
+#You may also want to check Processor(_Total)\% Privileged Time Counter and see 
+#if this counter shows a similar unexplained increase, as this may indicate 
+#problems with a device driver that is causing an additional hit on kernel mode 
+#processor utilization. In this case you can drill down and maybe find the culprit 
+#by examining the Process(instance)\% Processor Time counter for each process 
+#instances running on your machine. 
+#\Processor(_Total)\Interrupts/sec
+#\Processor(*)\Interrupts/sec
+
+#If Processor(_Total)\Interrupts/sec does not correlate well with 
+#System\Context Switches/sec however, your sudden jump in context switches may 
+#instead mean that your application is hitting its scalability limit on your 
+#particular machine and you may need to scale out your application (for example 
+#by clustering) or possibly redesign how it handles user mode requests.
+
+
+###############################################################################
+# OS Memory & Paging Counters
+###############################################################################
+
+# Unused physical memory (not page file)
+\Memory\Available MBytes
+
+#Reads from hard disk per second to resolve hard pages.
+\Memory\Pages Input/sec
+
+#Amount of Page File in use, which indicates the server is substituting disk 
+#space for memory.
+\Paging File(*)\% Usage
+
+#Highest %Usage metric since the last time the server was restarted.
+\Paging File(*)\% Usage Peak
+
+###############################################################################
+# OS Disk & Misc
+###############################################################################
+
+#A key measure of disk latency representing the average time, in milliseconds, 
+#of each write to disk, where non-cached writes ( > 20 poor, <20 fair, 
+#<12 better,  <8 best) differ significantly from cached writes (> 4 poor, 
+#<4 fair, <2 better, <1 best ). 
+#\PhysicalDisk(_Total)\Avg. Disk sec/Write
+\PhysicalDisk(*)\Avg. Disk sec/Write
+
+#A key measure of disk latency representing the average time, in milliseconds, 
+#of each read to disk where > 20 is poor, <20 is good/fair, <12 is better, <8 is best
+#\PhysicalDisk(_Total)\Avg. Disk sec/Read
+\PhysicalDisk(*)\Avg. Disk sec/Read
+
+#The number of bytes sent and received over a specific network adapter, including
+# framing characters. Be sure to record the throughput of your SQL Server’s NIC 
+#card(s).  Watch for this value possibly exceeding the NIC’s specifications, 
+#especially when conducting large and/or multiple backups or copies to network drives.  
+#A high-speed network and/or a NIC dedicated to admin processes often alleviates this 
+#bottleneck. This counter is a sum of “Network Interface\\Bytes Received/sec” and 
+#“Network Interface\\Bytes Sent/sec”.  In some situations, you may wish to determine 
+#both inbound and outbound network traffic separately
+\Network Interface(*)\Bytes Total/sec

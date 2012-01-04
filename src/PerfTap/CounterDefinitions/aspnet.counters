@@ -1,0 +1,25 @@
+#http://msdn.microsoft.com/en-us/library/fxk122b4.aspx
+
+#\asp.net applications(__total__)\requests failed
+\asp.net applications(*)\requests failed
+#\asp.net applications(__total__)\requests/sec
+\asp.net applications(*)\requests/sec
+#\asp.net applications(__total__)\errors during execution
+\asp.net applications(*)\errors during execution
+#\asp.net applications(__total__)\errors unhandled during execution/sec
+\asp.net applications(*)\errors unhandled during execution/sec
+#\asp.net applications(__total__)\errors total/sec
+\asp.net applications(*)\errors total/sec
+#\asp.net applications(__total__)\pipeline instance count
+\asp.net applications(*)\pipeline instance count
+#\asp.net applications(__total__)\sessions active
+\asp.net applications(*)\sessions active
+#\asp.net applications(__total__)\session sql server connections total
+\asp.net applications(*)\session sql server connections total
+\asp.net\applications running
+\asp.net\application restarts
+\asp.net\requests current
+\asp.net\requests queued
+\asp.net\requests rejected
+\asp.net\Worker Processes Running
+\asp.net\worker process restarts

@@ -1,0 +1,361 @@
+##Additional Ref
+## http://blogs.technet.com/b/heyscriptingguy/archive/2011/07/25/use-powershell-to-monitor-your-sql-server-performance.aspx
+
+###############################################################################
+# OS Memory & Paging Counters
+###############################################################################
+
+# Unused physical memory (not page file)
+\Memory\Available MBytes
+
+#Reads from hard disk per second to resolve hard pages.
+\Memory\Pages Input/sec
+
+#Amount of Page File in use, which indicates the server is substituting disk 
+#space for memory.
+\Paging File(*)\% Usage
+
+#Highest %Usage metric since the last time the server was restarted.
+\Paging File(*)\% Usage Peak
+
+###############################################################################
+# OS CPU & Processor Counters
+###############################################################################
+# Percentage of elapsed time the processor spends executing non-idle threads
+#CPU: >70% is poor for OLTP, 50% w/HT, individual procs > 70% is also a concern. #Batch and DW have no limits
+#\Processor(_Total)\% Processor Time
+\Processor(*)\% Processor Time
+
+# Number of threads waiting for CPU cycles, where < 12 per CPU is good/fair, 
+#< 8 is better, < 4 is best
+\System\Processor Queue Length
+
+#Number of execution contexts switched in the last second, where >6000 is poor, 
+#<3000 is good, and <1500 is excellent.
+#Does it track with SQL Batch Requests/sec, network and IO?.
+\System\Context Switches/sec
+
+#Percentage of processor time spent on SQL Server process threads.You may also 
+#wish to investigate other Process (sqlservr) such as Private Bytes, Virtual 
+#Bytes, Working Set, etc to get a fuller understanding of how SQL Server allocates 
+#certain segments of memory. Usually, these auxiliary counters provide contextual 
+#information and are not necessary for troubleshooting. 
+#if sqlserver is greater than 80% of the total time, something is up
+\Process(sqlservr)\% Processor Time
+\Process(msmdsrv)\% Processor Time
+
+###############################################################################
+# Data Access Performance Counters
+###############################################################################
+
+#number of full scans on tables or indexes - ignore unless high CPU coincides 
+#with high scan rates
+\SQLServer:Access Methods\Full Scans/sec
+
+#number of index searches when doing range scans, single index record fetches 
+#and repositioning in index 
+\SQLServer:Access Methods\Index Searches/sec
+
+#Monitors the number of page splits per second which occur due to overflowing 
+#index pages and should be as low as possible. To avoid page splits, review 
+#table and index design to reduce non-sequential inserts or implement 
+#fillfactor and pad_index to leave more empty space per page.  NOTE: A high
+#value for this counter is not bad in situations where many new pages are being #created, since it includes new page allocations.
+\SQLServer:Access Methods\Page Splits/sec
+
+#Number of work files created per second, usually as a part of tempdb processing 
+#when working with hashing joins and other hashing operations. High values can 
+#indicate thrash in tempdb and poorly coded queries.
+\SQLServer:Access Methods\Workfiles Created/sec
+
+#Number of work tables created per second, usually as a part of tempdb processing #when working with spools such as table spools, index spools, etc.
+\SQLServer:Access Methods\Worktables Created/sec
+
+###############################################################################
+# Memory Manager Counters
+###############################################################################
+
+#Total number of processes per second waiting for a workspace memory grant. 
+#Numbers higher than 0 indicate a lack of memory
+\SQLServer:Memory Manager\Memory Grants Pending
+
+###############################################################################
+# OS Disk & Misc
+###############################################################################
+
+#A key measure of disk latency representing the average time, in milliseconds, 
+#of each write to disk, where non-cached writes ( > 20 poor, <20 fair, 
+#<12 better,  <8 best) differ significantly from cached writes (> 4 poor, 
+#<4 fair, <2 better, <1 best ). For OLTP databases, the lower this number the 
+#better, especially for disks holding the transaction log.
+#\PhysicalDisk(_Total)\Avg. Disk sec/Write
+#transaction log disks should be <5ms
+#data log disks should be <20ms
+#** BEST METRIC for quality is latency
+\PhysicalDisk(*)\Avg. Disk sec/Write
+
+#A key measure of disk latency representing the average time, in milliseconds, 
+#of each read to disk where > 20 is poor, <20 is good/fair, <12 is better, <8 is best
+#** BEST METRIC for quality is latency
+#\PhysicalDisk(_Total)\Avg. Disk sec/Read
+\PhysicalDisk(*)\Avg. Disk sec/Read
+
+#The number of bytes sent and received over a specific network adapter, including
+# framing characters. Be sure to record the throughput of your SQL Server’s NIC 
+#card(s).  Watch for this value possibly exceeding the NIC’s specifications, 
+#especially when conducting large and/or multiple backups or copies to network drives.  
+#A high-speed network and/or a NIC dedicated to admin processes often alleviates this 
+#bottleneck. This counter is a sum of “Network Interface\\Bytes Received/sec” and 
+#“Network Interface\\Bytes Sent/sec”.  In some situations, you may wish to determine 
+#both inbound and outbound network traffic separately
+\Network Interface(*)\Bytes Total/sec
+
+###############################################################################
+# User Database Performance Counters
+###############################################################################
+
+#Cumulative size (KB) of all the data files in the database including any 
+#automatic growth.  Monitoring this counter is useful, for example, for determining 
+#the correct size of tempdb.
+\SQLServer:Databases(*)\Data File(s) Size (KB)
+
+#Cumulative size, in (KB), of all the transaction log files for the specific 
+#database. Useful for determining trends and utilization of the transaction log.
+\SQLServer:Databases(*)\Log File(s) Size (KB)
+
+#Total number of log bytes flushed per second. Useful for determining trends and
+#utilization of the transaction log
+\SQLServer:Databases(*)\Log Bytes Flushed/sec
+
+#Percentage of space in the log that is in use.  Since all work in an OLTP 
+#database stops until writes can occur to the transaction log, it’s a very good 
+#idea to ensure that the log never fills completely.  Hence, the recommendation 
+#to keep the log under 80% full.
+\SQLServer:Databases(*)\Percent Log Used
+
+#Effectively, the number of times per second that SQL Server must wait for pages 
+#to be written to the transaction log.
+\SQLServer:Databases(*)\Log Flush Waits/sec
+
+#Technically, the number of log pages flushed to the transaction log per second.  
+\SQLServer:Databases(*)\Log Flushes/sec
+
+#number of active transactions / transactions / second
+\SQLServer:Databases(*)\Active Transactions
+\SQLServer:Databases(*)\Transactions/sec
+
+
+###############################################################################
+# Buffer Manager & Memory Performance
+###############################################################################
+
+#Monitors the number of requests per second where data requests stall because no 
+#buffers are available. Any value above 2 means SQL Server needs more memory.
+\SQLServer:Buffer Manager\Free list stalls/sec
+
+#Monitors the number of times per second that the Lazy Writer process moves 
+#dirty pages from the buffer to disk as it frees up buffer space. Lower is better 
+#with zero being ideal.  When greater than 20, this counter indicates a need for 
+#more memory.
+\SQLServer:Buffer Manager\Lazy writes/sec
+
+#Monitors the number of dirty pages, per second, that are flushed to disk when 
+#SQL Server invokes the checkpoint process.  Checkpoint frequency is influenced 
+#by the recovery interval setting in sp_configure.  High values for this counter 
+#may indicate insufficient memory or that the recovery interval is too high
+\SQLServer:Buffer Manager\Checkpoint pages/sec
+
+#Tells, on average, how many seconds SQL Server expects a data page to stay in 
+#cache. The target on an OLTP system should be at least 300 (5 min).  When under 
+#300, this may indicate poor index design (leading to increased disk I/O and 
+#less effective use of memory) or, simply, a potential shortage of memory. 
+\SQLServer:Buffer Manager\Page Life Expectancy
+
+#The number of requests to find a page in the buffer pool. When the ratio of batch 
+#requests to page lookups crests 100, you may have inefficient execution plans or 
+#too many adhoc queries
+\SQLServer:Buffer Manager\Page lookups/sec
+
+#Number of physical database page reads issued per second. Normal OLTP workloads
+#support 80 – 90 per second, but higher values may be a yellow flag for poor 
+#indexing or insufficient memory.
+\SQLServer:Buffer Manager\Page reads/sec
+
+#Number of database pages physically written to disk per second. Normal OLTP 
+#workloads support 80 – 90 per second. Values over 90 should be crossed 
+#checked with “lazy writer/sec” and “checkpoint” counters. If the other counters 
+#are also high, then it may indicate insufficient memory.
+\SQLServer:Buffer Manager\Page writes/sec
+
+#Number of data pages read per second in anticipation of their use. If this value 
+#makes up even a sizeable minority of total Page Reads/sec (say, greater than 20%
+#of total page reads), you may have too many physical reads occurring
+\SQLServer:Buffer Manager\Readahead pages/sec
+
+
+###############################################################################
+# Memory manager
+###############################################################################
+
+#Shows the amount of memory that SQL Server wants to use based on the configured 
+#Max Server Memory
+\SQLServer:Memory Manager\Target Server Memory (KB)
+
+#Shows the amount of memory that SQL Server is currently using.  This value 
+#should grow until its equal to Target Server Memory, as it populates its caches 
+#and loads pages into memory.  When it has finished, SQL Server is said to be in 
+#a “steady-state”.  Until it is in steady-state, performance may be slow and IO 
+#may be higher.
+\SQLServer:Memory Manager\Total Server Memory (KB)
+
+###############################################################################
+# SQL Statistics and Workload Performance Counters
+###############################################################################
+
+#Number of auto-parameterization attempts per second. Total should be the sum of 
+#the failed, safe, and unsafe auto-parameterizations. Auto-parameterization 
+#occurs when an instance of SQL Server attempts to reuse a cached plan for a 
+#previously executed query that is similar to, but not the same as, the current query
+\SQLServer:SQL Statistics\Auto-Param Attempts/sec
+
+#Number of batch requests received per second, and is a good general indicator 
+#for the activity level of the SQL Server.  This counter is highly dependent on 
+#the hardware and quality of code running on the server. The more powerful the 
+#hardware, the higher this number can be, even on poorly coded applications.  A 
+#value of 1000 batch requests/sec is easily attainable though a typical 100Mbs 
+#NIC can only handle about 3000 batch requests/sec.Many other counter thresholds 
+#depend upon batch requests/sec while, in some cases, a low (or high) number 
+#does not point to poor processing power.  You should frequently use this counter
+#in combination with other counters, such as processor utilization or user 
+#connections.In version 2000, “Transactions/sec” was the counter most often 
+#used to measure overall activity, while versions 2005 and later use 
+#“Batch Requests/sec”.  Versions 2005 prior to SP2, measure this counter 
+#differently and may lead to some misunderstandings
+#SQL Batch/sec > 10K is a client application warning, along with high CPU
+#on individual CPU with high kernel time.
+\SQLServer:SQL Statistics\Batch Requests/sec
+
+#Number of times that Transact-SQL compilations occurred, per second (including
+#recompiles). The lower this value is the better.  High values often indicate 
+#excessive adhoc querying and should be as low as possible. If excessive adhoc 
+#querying is happening, try rewriting the queries as procedures or invoke the 
+#queries using sp_executeSQL. When rewriting isn’t possible, consider using a 
+#plan guide or setting the database to parameterization forced mode.
+#<2/sec negligible, 2-20/sec could be investigated, 20-100 poor, >100 potentially serious, 
+#keep in mind, a simple statement compile cost is low, a complex query could take 1min to compile.
+\SQLServer:SQL Statistics\SQL Compilations/sec
+
+#Number of times, per second, that Transact-SQL objects attempted to be executed 
+#but had to be recompiled before completion.  This number should be at or near 
+#zero, since recompiles can cause deadlocks and exclusive compile locks.  
+#This counter’s value should follow in proportion to “Batch Requests/sec” and 
+#“SQL Compilations/sec”.  This needs to be nil in your system as much as possible.
+\SQLServer:SQL Statistics\SQL Re-Compilations/sec
+
+#Number of cancels and query timeouts occurring per second.  This number should 
+#be as low as possible.  A high sustained number indicates frequent query 
+#timeout or end-user cancellation of queries.
+\SQLServer:SQL Statistics\SQL Attention rate
+
+#Number of active cursors when polled.  Monitor cursor counters to see if there 
+#may be heavy use of server cursors since improper use can result in performance issues.
+\SQLServer:Cursor Manager by Type(*)\Active cursors
+
+#Number of errors per second which takes a database offline or kills a user connection, 
+#respectively.  Since these are severe errors, they should occur very infrequently
+\SQLServer:SQL Errors(*)\Errors/sec
+
+###############################################################################
+# Users & Locks Performance Counters
+###############################################################################
+
+#The number of user logins per second. Any value over 2 may indicate insufficient 
+#connection pooling.
+#High logout rate is bad because true logins are expensive. 
+#The login counter includes both true logins and connection pooling logins.
+\SQLServer:General Statistics\Logins/sec
+\SQLServer:General Statistics\Logouts/sec
+
+#The number of users currently connected to the SQL Server.  This counter should 
+#roughly track with “Batch Requests/Sec”.  They should generally rise and fall 
+#together.  For example, blocking problems could be revealed by rising user 
+#connections, lock waits and lock wait time coupled with declining batch 
+#requests/sec.  
+\SQLServer:General Statistics\User Connections
+
+#The number of latches in the last second that had to wait. Latches are lightweight 
+#means of holding a very transient server resource, such as an address in memory
+\SQLServer:Latches\Latch Waits/sec
+
+#The average latch wait time, in milliseconds, for any latch requests that had to 
+#wait.  This value should generally correlate to “Latch Waits/sec” and move up 
+#or down with it accordingly
+\SQLServer:Latches\Average Latch Wait Time (ms)
+
+#How many times users waited to acquire a lock over the past second.  Values 
+#greater than zero indicate at least some blocking is occurring, while a 
+#value of zero can quickly eliminate blocking as a potential root-cause 
+#problem.  As with “Lock Wait Time”, lock waits are not recorded by PerfMon 
+#until after the lock event completes. 
+\SQLServer:Locks(*)\Lock Waits/sec
+
+#The average wait time, in milliseconds, for each lock request that had to wait.  
+#An average wait time longer than 500ms may indicate excessive blocking. This 
+#value should generally correlate to “Lock Waits/sec” and move up or down with it 
+#accordingly.
+\SQLServer:Locks(*)\Average Wait Time (ms)
+
+#The number of new locks and locks converted per second. This metric’s value 
+#should generally correspond to “Batch Requests/sec”. Values > 1000 may indicate 
+#queries are accessing very large numbers of rows and may benefit from tuning.
+\SQLServer:Locks(*)\Lock Requests/sec
+
+#Shows the number of lock requests per second that timed out, including internal 
+#requests for NOWAIT locks. A value greater than zero might indicate that user 
+#queries are not completing.  The lower this value is, the better.
+\SQLServer:Locks(*)\Lock Timeouts/sec
+\SQLServer:Locks(*)\Lock Timeouts (timeout > 0)/sec
+
+# Number of lock requests, per second, which resulted in a deadlock.  Since only 
+#a COMMIT, ROLLBACK, or deadlock can terminate a transaction (excluding failures 
+#or errors), this is an important value to track.  Excessive deadlocking 
+#indicates a table or index design error or bad application design
+\SQLServer:Locks(*)\Number of Deadlocks/sec
+
+#Percentage of work tables created whose initial two pages were immediately 
+#available from the worktable cache. A value less than 90% may indicate 
+#insufficient memory, since execution plans are being dropped, or may indicate, 
+#on 32-bit systems, the need for an upgrade to a 64-bit system.
+\SQLServer:Access Methods\Worktables From Cache Ratio
+
+#Number of times that SQL Server escalated locks from page- or row-level to 
+#table-level. This number should, generally, be low.  Frequent or even occasional 
+#spiking in this value may indicate poorly coded transactions
+\SQLServer:Access Methods\Table Lock Escalations/sec
+
+#The time, in seconds, of the longest running transaction.  When blocking is high, 
+#check this counter to see if transactions are open for long periods of time.
+\SQLServer:Transactions\Longest Transaction Running Time
+
+###############################################################################
+# Red Herrings
+###############################################################################
+
+#Long a stalwart counter used by SQL Server DBAs, this counter is no longer 
+#very useful. It monitors the percentage of data requests answer from the buffer
+#cache since the last reboot. However, other counters are much better for 
+#showing current memory pressure that this one because it blows the curve. For 
+#example, PLE (page life expectancy) might suddenly drop from 2000 to 70, while
+#buffer cache hit ration moves only from 98.2 to 98.1. Only be concerned by this
+#counter if it’s value is regularly below 90 (for OLTP) or 80 (for very large OLAP).
+#\SQLServer:Buffer Manager\Buffer cache hit ratio
+
+#The way in which Windows measures disk queues, combined with the amount of cache 
+#that storage vendors provide with hard disk controllers, SANs, and hard disks 
+#themselves means that Windows might perceive that data is written all the way 
+#to disk, when in fact the data is actually sitting in a hardware-level cache somewhere.
+#\Physical Disk:Avg Disk Queue Length
+
+
+#A highly misinterpret counter is network bandwidth %, few situations will 
+#really use the full bandwidth. Round trip latency is for more important.

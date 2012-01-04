@@ -1,0 +1,44 @@
+#< 5% rps
+#\.net clr exceptions(_global_)\# of exceps thrown / sec
+\.net clr exceptions(*)\# of exceps thrown / sec
+
+#track counter
+#\.net clr locksandthreads(_global_)\# of current logical threads
+\.net clr locksandthreads(*)\# of current logical threads
+
+#track counter
+#\.net clr locksandthreads(_global_)\# of current physical threads
+\.net clr locksandthreads(*)\# of current physical threads
+
+#0 or low
+#\.net clr locksandthreads(_global_)\contention rate / sec
+\.net clr locksandthreads(*)\contention rate / sec
+
+#0 or low
+#\.net clr locksandthreads(_global_)\current queue length
+\.net clr locksandthreads(*)\current queue length
+
+#track counter, shouldn't grow
+#\.net clr memory(_global_)\# bytes in all heaps
+\.net clr memory(*)\# bytes in all heaps
+
+#<5%
+#\.net clr memory(_global_)\% time in gc
+\.net clr memory(*)\% time in gc
+
+#track counter, shouldn't grow
+#\.net clr memory(_global_)\# gc handles
+\.net clr memory(*)\# gc handles
+
+#track counter, shouldn't grow
+#\.net clr memory(_global_)\# total committed bytes
+\.net clr memory(*)\# total committed bytes
+
+#track counter, shouldn't grow
+#be wary when reserved significantly > committed
+#\.net clr memory(_global_)\# total reserved bytes
+\.net clr memory(*)\# total reserved bytes
+
+#track counter, shouldn't grow
+#\.net clr memory(_global_)\# of pinned objects
+\.net clr memory(*)\# of pinned objects
