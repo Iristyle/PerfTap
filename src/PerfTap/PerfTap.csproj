@@ -54,6 +54,8 @@
     <Compile Include="Counter\CounterPathBuilder.cs" />
     <Compile Include="Interop\PdhMakeCounterPathFlags.cs" />
     <Compile Include="Interop\PdhWildcardPathFlags.cs" />
+    <Compile Include="Interop\PDH_FMT_COUNTERVALUE_DOUBLE.cs" />
+    <Compile Include="Interop\PDH_RAW_COUNTER.cs" />
     <Compile Include="Interop\Win32Messages.cs" />
     <Compile Include="Counter\CounterFileInfo.cs" />
     <Compile Include="Counter\CounterSet.cs" />
@@ -71,7 +73,7 @@
     <Compile Include="Interop\PdhResults.cs" />
     <Compile Include="Interop\PdhSafeDataSourceHandle.cs" />
     <Compile Include="Interop\PdhSafeQueryHandle.cs" />
-    <Compile Include="Interop\Structures.cs" />
+    <Compile Include="Interop\PDH_COUNTER_PATH_ELEMENTS.cs" />
     <Compile Include="Interop\Win32Results.cs" />
     <Compile Include="MonitoringTaskFactory.cs" />
     <Compile Include="Net\PacketBuilder.cs" />

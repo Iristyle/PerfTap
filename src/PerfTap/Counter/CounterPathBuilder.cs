@@ -8,6 +8,8 @@ namespace PerfTap.Counter
 	{
 		public static List<string> PrefixWithComputerNames(this IEnumerable<string> counterNames, IEnumerable<string> computerNames)
 		{
+			if (null == counterNames) { throw new ArgumentNullException("counterNames"); }
+
 			if (null == computerNames || computerNames.Count() == 0)
 			{
 				return counterNames.ToList();

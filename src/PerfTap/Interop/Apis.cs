@@ -26,13 +26,13 @@ namespace PerfTap.Interop
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]
 		public static extern uint PdhGetCounterTimeBase(IntPtr hCounter, out ulong pTimeBase);
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]
-		public static extern uint PdhGetFormattedCounterValue(IntPtr counterHandle, uint dwFormat, out IntPtr lpdwType, out Structures.PDH_FMT_COUNTERVALUE_DOUBLE pValue);
+		public static extern uint PdhGetFormattedCounterValue(IntPtr counterHandle, uint dwFormat, out IntPtr lpdwType, out PDH_FMT_COUNTERVALUE_DOUBLE pValue);
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]
-		public static extern uint PdhGetRawCounterValue(IntPtr hCounter, out IntPtr lpdwType, out Structures.PDH_RAW_COUNTER pValue);
+		public static extern uint PdhGetRawCounterValue(IntPtr hCounter, out IntPtr lpdwType, out PDH_RAW_COUNTER pValue);
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]
 		public static extern uint PdhLookupPerfNameByIndex(string szMachineName, uint dwNameIndex, IntPtr szNameBuffer, ref int pcchNameBufferSize);
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]
-		public static extern uint PdhMakeCounterPath(ref Structures.PDH_COUNTER_PATH_ELEMENTS pCounterPathElements, IntPtr szFullPathBuffer, ref IntPtr pcchBufferSize, uint dwFlags);
+		public static extern uint PdhMakeCounterPath(ref PDH_COUNTER_PATH_ELEMENTS pCounterPathElements, IntPtr szFullPathBuffer, ref IntPtr pcchBufferSize, uint dwFlags);
 		[DllImport("pdh.dll")]
 		public static extern uint PdhOpenQueryH(PdhSafeDataSourceHandle hDataSource, IntPtr dwUserData, out PdhSafeQueryHandle phQuery);
 		[DllImport("pdh.dll", CharSet = CharSet.Unicode)]

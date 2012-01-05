@@ -19,7 +19,7 @@ namespace PerfTap.Counter
 			this._resourceMgr = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
 		}
 
-		internal PerformanceCounterSampleSet(DateTime timeStamp, PerformanceCounterSample[] counterSamples, bool firstSet)
+		internal PerformanceCounterSampleSet(DateTime timeStamp, PerformanceCounterSample[] counterSamples)
 			: this()
 		{
 			this.Timestamp = timeStamp;

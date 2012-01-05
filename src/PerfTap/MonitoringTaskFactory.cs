@@ -20,9 +20,9 @@ namespace PerfTap
 	/// </summary>
 	public class MonitoringTaskFactory
 	{
-		private ICounterConfiguration _counterConfig;
-		private IReportingConfiguration _reportingConfig;
-		private List<string> _counterPaths;
+		private readonly ICounterConfiguration _counterConfig;
+		private readonly IReportingConfiguration _reportingConfig;
+		private readonly List<string> _counterPaths;
 
 		/// <summary>
 		/// Initializes a new instance of the MonitoringTaskFactory class.
@@ -44,16 +44,14 @@ namespace PerfTap
 		{
 			return new Task(() => 
 				{
-					using (var reader = new PerfmonCounterReader())
-					{
-						//TODO: this doesn't quite jive yet -- need to grab timespan from configuration
-						var metrics = reader.StreamCounterSamples(_counterPaths, TimeSpan.FromSeconds(1), cancellationToken)
-							.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key));
+					var reader = new PerfmonCounterReader();
+					//TODO: this doesn't quite jive yet -- need to grab timespan from configuration
+					var metrics = reader.GetCounterSamples(_counterPaths, TimeSpan.FromSeconds(1), 1)
+						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key));
 
-						using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
-						{
-							messenger.SendMetrics(metrics);
-						}						
+					using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
+					{
+						messenger.SendMetrics(metrics);
 					}
 				}, cancellationToken);
 			/*
