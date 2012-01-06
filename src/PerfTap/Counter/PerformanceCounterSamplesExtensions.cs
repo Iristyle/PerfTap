@@ -17,7 +17,7 @@ namespace PerfTap
 	/// <summary>
 	/// TODO: Update summary.
 	/// </summary>
-	public static class PerfmonCounterExtensions
+	public static class PerformanceCounterSamplesExtensions
 	{
 		private static Regex _validKey = new Regex(@"^[^\s;:/\.\(\)\\#%\$\^]+$", RegexOptions.Compiled);
 		private const string _keyValue = "kv",

@@ -72,8 +72,8 @@
     <Compile Include="Interop\Win32Results.cs" />
     <Compile Include="MonitoringTaskFactory.cs" />
     <Compile Include="Net\PacketBuilder.cs" />
-    <Compile Include="PerfmonCounterExtensions.cs" />
     <Compile Include="Net\PoolAwareSocketAsyncEventArgs.cs" />
+    <Compile Include="Counter\PerformanceCounterSamplesExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GetEventResources.Designer.cs">
       <AutoGen>True</AutoGen>
