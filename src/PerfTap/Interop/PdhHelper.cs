@@ -5,12 +5,10 @@ namespace PerfTap.Interop
 	using System.Diagnostics;
 	using System.Globalization;
 	using System.Linq;
-	using System.Reflection;
-	using System.Resources;
 	using System.Runtime.InteropServices;
 	using Microsoft.Win32;
-	using PerfTap.Counter;
 	using NLog;
+	using PerfTap.Counter;
 
 	public class PdhHelper 
 		: IDisposable
@@ -28,7 +26,6 @@ namespace PerfTap.Interop
 		}
 
 		private static readonly Logger _log = LogManager.GetCurrentClassLogger();
-		private static readonly ResourceManager _resourceManager = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
 		private readonly Dictionary<string, CounterHandleNInstance> _consumerPathToHandleAndInstanceMap
 			= new Dictionary<string, CounterHandleNInstance>();
 		private PdhSafeDataSourceHandle _safeDataSourceHandle;
@@ -54,8 +51,9 @@ namespace PerfTap.Interop
 			List<string> validPaths = ParsePaths(counters.PrefixWithComputerNames(computerNames)).ToList();
 
 			if (validPaths.Count == 0)
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathIsInvalid"), new object[] { string.Empty }));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathIsInvalid, new object[] { string.Empty }));
 
+			OpenQuery();
 			AddCounters(validPaths);
 		}
 
@@ -74,7 +72,7 @@ namespace PerfTap.Interop
 				{
 					if (!IsPathValid(expandedPath))
 					{
-						throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathIsInvalid"), new object[] { counterPath }));
+						throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathIsInvalid, new object[] { counterPath }));
 					}
 
 					yield return expandedPath;
@@ -125,7 +123,7 @@ namespace PerfTap.Interop
 			string message = Win32Messages.FormatMessageFromModule(failedReturnCode, "pdh.dll");
 			if (string.IsNullOrEmpty(message))
 			{
-				message = string.Format(CultureInfo.InvariantCulture, _resourceManager.GetString("CounterApiError"), new object[] { failedReturnCode });
+				message = string.Format(CultureInfo.InvariantCulture, GetEventResources.CounterApiError, new object[] { failedReturnCode });
 			}
 
 			return new Exception(message);
@@ -210,7 +208,7 @@ namespace PerfTap.Interop
 		{
 			if (index < 0)
 			{
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), 0));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathTranslationFailed, 0));
 			}
 
 			int perfNameBufferSize = 256;
@@ -231,7 +229,7 @@ namespace PerfTap.Interop
 					return Marshal.PtrToStringUni(perfNamePointer);
 				}
 
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), returnCode));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathTranslationFailed, returnCode));
 			}
 			finally
 			{
@@ -267,7 +265,7 @@ namespace PerfTap.Interop
 				}
 			}
 
-			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), resultCode));
+			throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathTranslationFailed, resultCode));
 		}
 
 		private static PDH_COUNTER_PATH_ELEMENTS ParsePath(string fullPath)
@@ -291,7 +289,7 @@ namespace PerfTap.Interop
 				}
 			}
 
-			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), returnCode));
+			throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathTranslationFailed, returnCode));
 		}
 
 		private void OpenQuery()

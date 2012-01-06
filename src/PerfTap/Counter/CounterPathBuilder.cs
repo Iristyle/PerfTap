@@ -17,6 +17,7 @@ namespace PerfTap.Counter
 
 			return counterNames.Select(counter =>
 				{
+					//already has computer name?
 					if (counter.StartsWith(@"\\", StringComparison.OrdinalIgnoreCase))
 					{
 						return new[] { counter };
@@ -24,11 +25,11 @@ namespace PerfTap.Counter
 
 					return computerNames.Select(computerName =>
 						{
-							if (computerName.StartsWith(@"\\", StringComparison.OrdinalIgnoreCase))
-							{
-								return String.Format(@"{0}\{1}", computerName, counter);
-							}
-							return String.Format(@"\\{0}\{1}", computerName, counter);
+							string format = computerName.StartsWith(@"\\", StringComparison.OrdinalIgnoreCase) ? @"{0}\{1}"
+								: counter.StartsWith(@"\", StringComparison.OrdinalIgnoreCase) ? @"\\{0}{1}" :
+								@"\\{0}\{1}";
+
+							return String.Format(format, computerName, counter);
 						});
 				}).SelectMany(c => c).ToList();
 		}
