@@ -29,9 +29,9 @@ namespace PerfTap
 		public static IEnumerable<string> ToGraphiteString(this IEnumerable<PerformanceCounterSample> performanceCounters, string key)
 		{
 			if (null == performanceCounters)
-			{ throw new ArgumentNullException("performanceCounter"); }
+				{ throw new ArgumentNullException("performanceCounter"); }
 			if (!string.IsNullOrEmpty(key) && !_validKey.IsMatch(key))
-			{ throw new ArgumentException("Key contains invalid characters", "key"); }
+				{ throw new ArgumentException("Key contains invalid characters", "key"); }
 
 			var metric = new StringBuilder(150);
 			string prefix = string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim() + ".";

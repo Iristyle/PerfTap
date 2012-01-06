@@ -43,6 +43,9 @@
     <Reference Include="xunit">
       <HintPath>..\..\src\packages\xunit.1.8.0.1549\lib\xunit.dll</HintPath>
     </Reference>
+    <Reference Include="xunit.runner.utility">
+      <HintPath>..\..\src\packages\xunit.1.8.0.1549\lib\xunit.runner.utility.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interop\PdhHelperTests.cs" />

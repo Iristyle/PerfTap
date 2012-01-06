@@ -24,14 +24,12 @@ namespace PerfTap.Interop
 		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
 		private static extern IntPtr LoadLibraryEx([MarshalAs(UnmanagedType.LPWStr)] string lpFileName, IntPtr hFile, uint dwFlags);
 
-		public static uint FormatMessageFromModule(uint lastError, string moduleName, out string msg)
+		public static string FormatMessageFromModule(uint lastError, string moduleName)
 		{
-			msg = string.Empty;
 			IntPtr zero = LoadLibraryEx(moduleName, IntPtr.Zero, LOAD_LIBRARY_AS_DATAFILE);
-
 			if (zero == IntPtr.Zero)
 			{
-				return (uint)Marshal.GetLastWin32Error();
+				return string.Empty;
 			}
 
 			try
@@ -42,19 +40,20 @@ namespace PerfTap.Interop
 				if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM + FORMAT_MESSAGE_FROM_HMODULE + FORMAT_MESSAGE_IGNORE_INSERTS, zero,
 				lastError, userDefaultLangID, messageBuffer, (uint)messageBuffer.Capacity, IntPtr.Zero) == FORMAT_SUCCESS)
 				{
-					return (uint)Marshal.GetLastWin32Error();
+					return string.Empty;
 				}
-				msg = messageBuffer.ToString();				
-				if (msg.EndsWith(Environment.NewLine, StringComparison.Ordinal))
+				
+				string message = messageBuffer.ToString();
+				if (message.EndsWith(Environment.NewLine, StringComparison.Ordinal))
 				{
-					msg = msg.Substring(0, msg.Length - 2);
+					return message.Substring(0, message.Length - 2);
 				}
+				return message;
 			}
 			finally
 			{
 				FreeLibrary(zero);
 			}
-			return FORMAT_SUCCESS;
 		}
 
 		public static uint GetUserLangID()

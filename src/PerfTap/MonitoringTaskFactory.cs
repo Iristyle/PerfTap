@@ -40,13 +40,32 @@ namespace PerfTap
 			_reportingConfig = reportingConfig;
 		}
 
+		public Task CreateContinuousTask(CancellationToken cancellationToken)
+		{
+			return new Task(() =>
+			{
+				var reader = new PerfmonCounterReader();
+				//TODO: this doesn't quite jive yet -- need to grab timespan from configuration	
+				
+				using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
+				{
+					foreach (var metric in reader.StreamCounterSamples(_counterPaths, TimeSpan.FromSeconds(1), cancellationToken)
+						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key)))
+					{
+						//TODO: one metric at a time is presumably inefficient
+						messenger.SendMetrics(new[] { metric });
+					}
+				}
+			}, cancellationToken);
+		}
+
 		public Task CreateTask(CancellationToken cancellationToken)
 		{
 			return new Task(() => 
 				{
 					var reader = new PerfmonCounterReader();
 					//TODO: this doesn't quite jive yet -- need to grab timespan from configuration
-					var metrics = reader.GetCounterSamples(_counterPaths, TimeSpan.FromSeconds(1), 1)
+					var metrics = reader.GetCounterSamples(_counterPaths, TimeSpan.FromSeconds(1), 1, cancellationToken)
 						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key));
 
 					using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))

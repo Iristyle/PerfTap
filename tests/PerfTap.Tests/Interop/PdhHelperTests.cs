@@ -23,7 +23,7 @@ namespace PerfTap.Interop.Tests
 		{			
 			using (var pdhHelper = new PdhHelper(PerfmonCounterReader.DefaultCounters))
 			{
-				pdhHelper.ReadNextSet(false);
+				var set = pdhHelper.ReadNextSet();
 			}
 
 			Assert.True(true);

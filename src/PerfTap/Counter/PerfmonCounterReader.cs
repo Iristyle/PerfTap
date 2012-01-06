@@ -17,13 +17,14 @@ namespace PerfTap.Counter
 
 	public class PerfmonCounterReader
 	{
-		private static readonly ResourceManager _resourceMgr = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
-
+		private static readonly ResourceManager _resourceManager = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
 		private readonly IEnumerable<string> _computerNames = new string[0];
-		private const int KEEP_ON_SAMPLING = -1;
+		private const int INFINITIY = -1;
 
 		public PerfmonCounterReader(IEnumerable<string> computerNames)
 		{			
+			if (null == computerNames) { throw new ArgumentNullException("computerNames"); }
+
 			this._computerNames = computerNames;
 		}
 		
@@ -32,51 +33,56 @@ namespace PerfTap.Counter
 			this._computerNames = new string[0];
 		}
 
-		public IEnumerable<PerformanceCounterSampleSet> GetCounterSamples(TimeSpan sampleInterval, int count)
+		public IEnumerable<PerformanceCounterSampleSet> GetCounterSamples(TimeSpan sampleInterval, int count, CancellationToken token)
 		{
-			return ProcessGetCounter(GetDefaultCounters(), sampleInterval, count, new CancellationToken());	
+			if (count <= 0) { throw new ArgumentOutOfRangeException("count", "must be greater than zero"); }
+			if (null == token) { throw new ArgumentNullException("token"); }
+ 
+			return ProcessGetCounter(GetDefaultCounters(), sampleInterval, count, token);	
+		}
+		public IEnumerable<PerformanceCounterSampleSet> StreamCounterSamples(TimeSpan sampleInterval, CancellationToken token)
+		{
+			if (null == token) { throw new ArgumentNullException("token"); }
+
+			return ProcessGetCounter(GetDefaultCounters(), sampleInterval, INFINITIY, token);
 		}
 
-		public IEnumerable<PerformanceCounterSampleSet> GetCounterSamples(IEnumerable<string> counters, TimeSpan sampleInterval, int count)
-		{			
-			return ProcessGetCounter(counters, sampleInterval, count, new CancellationToken());
+		public IEnumerable<PerformanceCounterSampleSet> GetCounterSamples(IEnumerable<string> counters, TimeSpan sampleInterval, int count, CancellationToken token)
+		{
+			if (null == counters) { throw new ArgumentNullException("counters"); }
+			if (count <= 0) { throw new ArgumentOutOfRangeException("count", "must be greater than zero"); }
+			if (null == token) { throw new ArgumentNullException("token"); }
+
+			return ProcessGetCounter(counters, sampleInterval, count, token);
 		}
 
 		public IEnumerable<PerformanceCounterSampleSet> StreamCounterSamples(IEnumerable<string> counters, TimeSpan sampleInterval, CancellationToken token)
 		{
-			return ProcessGetCounter(counters, sampleInterval, KEEP_ON_SAMPLING, token);
+			if (null == counters) { throw new ArgumentNullException("counters"); }
+			if (null == token) { throw new ArgumentNullException("token"); }
+
+			return ProcessGetCounter(counters, sampleInterval, INFINITIY, token);
 		}
 
-		//KEEP_ON_SAMPLING is a valid int here
 		private IEnumerable<PerformanceCounterSampleSet> ProcessGetCounter(IEnumerable<string> counters, TimeSpan sampleInterval, int maxSamples, CancellationToken token)
 		{
 			using (PdhHelper helper = new PdhHelper(this._computerNames, counters))
 			{
-				bool lastSampleBad = true;
-				uint samplesRead = 0;
+				int samplesRead = 0;
 
 				do
 				{
-					PerformanceCounterSampleSet set = helper.ReadNextSet(lastSampleBad);
-					if (null == set)
-					{
-						//TODO: log this?
-						//PdhHelper.BuildException(returnCode, false);
-						lastSampleBad = true;
-						samplesRead++;
-						continue;
-					}
-
-					if (!lastSampleBad)
+					PerformanceCounterSampleSet set = helper.ReadNextSet();
+					if (null != set)
 					{
 						this.VerifySamples(set);
 						yield return set;
-						samplesRead++;
 					}
-					lastSampleBad = false;
+					//TODO: log a null set like this?
+					//PdhHelper.BuildException(returnCode, false);
+					samplesRead++;
 				}
-
-				while (((maxSamples == KEEP_ON_SAMPLING) || (samplesRead < maxSamples)) && !token.WaitHandle.WaitOne(sampleInterval, true));
+				while (((maxSamples == INFINITIY) || (samplesRead < maxSamples)) && !token.WaitHandle.WaitOne(sampleInterval, true));
 			}
 		}
 
@@ -105,7 +111,7 @@ namespace PerfTap.Counter
 		{
 			if (set.CounterSamples.Any(sample => sample.Status != 0))
 			{
-				throw new Exception(string.Format(CultureInfo.InvariantCulture, _resourceMgr.GetString("CounterSampleDataInvalid"), new object[0]));
+				throw new Exception(string.Format(CultureInfo.InvariantCulture, _resourceManager.GetString("CounterSampleDataInvalid"), new object[0]));
 			}
 		}
 	}

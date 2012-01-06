@@ -12,16 +12,30 @@ namespace PerfTap.Interop
 	using PerfTap.Counter;
 	using NLog;
 
-	public class PdhHelper : IDisposable
+	public class PdhHelper 
+		: IDisposable
 	{
+		private struct CounterHandleNInstance
+		{
+			public IntPtr CounterHandle { get; set; }
+			public string InstanceName { get; set; }
+		}
+
+		private struct RawCounterSample
+		{
+			public PerformanceCounterSample PerformanceCounterSample { get; set; }
+			public PDH_RAW_COUNTER RawCounter { get; set; }
+		}
+
 		private static readonly Logger _log = LogManager.GetCurrentClassLogger();
-		private static readonly ResourceManager _resourceMgr = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
+		private static readonly ResourceManager _resourceManager = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
 		private readonly Dictionary<string, CounterHandleNInstance> _consumerPathToHandleAndInstanceMap
 			= new Dictionary<string, CounterHandleNInstance>();
-		private PdhSafeDataSourceHandle _hDataSource;
-		private PdhSafeQueryHandle _hQuery;
+		private PdhSafeDataSourceHandle _safeDataSourceHandle;
+		private PdhSafeQueryHandle _safeQueryHandle;
 		private readonly bool _isPreVista;
-		private readonly Lazy<bool> _isOpen = new Lazy<bool>();
+		private bool _isLastSampleBad;
+		private readonly Lazy<bool> _isQueryOpen = new Lazy<bool>();
 
 		public PdhHelper(IEnumerable<string> counters)
 			: this(Environment.OSVersion.Version.Major < 6, new string[0], counters)
@@ -40,9 +54,9 @@ namespace PerfTap.Interop
 			List<string> validPaths = ParsePaths(counters.PrefixWithComputerNames(computerNames)).ToList();
 
 			if (validPaths.Count == 0)
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathIsInvalid"), new object[] { string.Empty }));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathIsInvalid"), new object[] { string.Empty }));
 
-			AddCounters(validPaths, true);
+			AddCounters(validPaths);
 		}
 
 		private IEnumerable<string> ParsePaths(IEnumerable<string> allCounterPaths)
@@ -60,7 +74,7 @@ namespace PerfTap.Interop
 				{
 					if (!IsPathValid(expandedPath))
 					{
-						throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathIsInvalid"), new object[] { counterPath }));
+						throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathIsInvalid"), new object[] { counterPath }));
 					}
 
 					yield return expandedPath;
@@ -70,33 +84,28 @@ namespace PerfTap.Interop
 
 		private void ConnectToDataSource()
 		{
-			if ((this._hDataSource != null) && !this._hDataSource.IsInvalid)
+			if ((this._safeDataSourceHandle != null) && !this._safeDataSourceHandle.IsInvalid)
 			{
-				this._hDataSource.Dispose();
+				this._safeDataSourceHandle.Dispose();
 			}
 
-			uint returnCode = Apis.PdhBindInputDataSource(out this._hDataSource, null);
+			uint returnCode = Apis.PdhBindInputDataSource(out this._safeDataSourceHandle, null);
 			if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
 			{
 				throw BuildException(returnCode);
 			}
 		}
 
-		private void AddCounters(IEnumerable<string> validPaths, bool flushOldCounters)
+		private void AddCounters(IEnumerable<string> validPaths)
 		{
-			if (flushOldCounters)
-			{
-				this._consumerPathToHandleAndInstanceMap.Clear();
-			}
-
 			uint resultCode = (uint)PdhResults.PDH_CSTATUS_VALID_DATA;
 			foreach (string validPath in validPaths)
 			{
-				IntPtr ptr;
-				resultCode = Apis.PdhAddCounter(this._hQuery, validPath, IntPtr.Zero, out ptr);
+				IntPtr counterPointer;
+				resultCode = Apis.PdhAddCounter(this._safeQueryHandle, validPath, IntPtr.Zero, out counterPointer);
 				if (resultCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 				{
-					CounterHandleNInstance instance = new CounterHandleNInstance() { hCounter = ptr, InstanceName = null };
+					CounterHandleNInstance instance = new CounterHandleNInstance() { CounterHandle = counterPointer, InstanceName = null };
 					PDH_COUNTER_PATH_ELEMENTS pCounterPathElements = PdhHelper.ParsePath(validPath);
 
 					if (pCounterPathElements.InstanceName != null)
@@ -111,189 +120,186 @@ namespace PerfTap.Interop
 			}
 		}
 
-		private static Exception BuildException(uint res)
+		private static Exception BuildException(uint failedReturnCode)
 		{
-			string message;
-			if (Win32Messages.FormatMessageFromModule(res, "pdh.dll", out message) != 0)
+			string message = Win32Messages.FormatMessageFromModule(failedReturnCode, "pdh.dll");
+			if (string.IsNullOrEmpty(message))
 			{
-				message = string.Format(CultureInfo.InvariantCulture, _resourceMgr.GetString("CounterApiError"), new object[] { res });
+				message = string.Format(CultureInfo.InvariantCulture, _resourceManager.GetString("CounterApiError"), new object[] { failedReturnCode });
 			}
 
 			return new Exception(message);
 		}
 
-
 		public void Dispose()
 		{
-			if ((this._hDataSource != null) && !this._hDataSource.IsInvalid)
+			if ((this._safeDataSourceHandle != null) && !this._safeDataSourceHandle.IsInvalid)
 			{
-				this._hDataSource.Dispose();
+				this._safeDataSourceHandle.Dispose();
 			}
-			if ((this._hQuery != null) && !this._hQuery.IsInvalid)
+			if ((this._safeQueryHandle != null) && !this._safeQueryHandle.IsInvalid)
 			{
-				this._hQuery.Dispose();
+				this._safeQueryHandle.Dispose();
 			}
 			GC.SuppressFinalize(this);
 		}
 
 		private string[] ExpandWildCardPath(string path)
 		{
-			IntPtr pcchPathListLength = new IntPtr(0);
-			uint resultCode = Apis.PdhExpandWildCardPathH(this._hDataSource, path, IntPtr.Zero, ref pcchPathListLength, PdhWildcardPathFlags.None);
+			IntPtr pathListLength = new IntPtr(0);
+			uint resultCode = Apis.PdhExpandWildCardPathH(this._safeDataSourceHandle, path, IntPtr.Zero, ref pathListLength, PdhWildcardPathFlags.None);
 			if (resultCode == PdhResults.PDH_MORE_DATA)
 			{
-				IntPtr mszExpandedPathList = Marshal.AllocHGlobal(pcchPathListLength.ToInt32() * 2);
+				IntPtr expandedPathList = Marshal.AllocHGlobal(pathListLength.ToInt32() * 2);
 				try
 				{
-					resultCode = Apis.PdhExpandWildCardPathH(this._hDataSource, path, mszExpandedPathList, ref pcchPathListLength, PdhWildcardPathFlags.None);
+					resultCode = Apis.PdhExpandWildCardPathH(this._safeDataSourceHandle, path, expandedPathList, ref pathListLength, PdhWildcardPathFlags.None);
 					if (resultCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 					{
-						return PdhHelper.ParsePdhMultiStringBuffer(ref mszExpandedPathList, pcchPathListLength.ToInt32());
+						return PdhHelper.ParsePdhMultiStringBuffer(ref expandedPathList, pathListLength.ToInt32());
 					}
 				}
 				finally
 				{
-					Marshal.FreeHGlobal(mszExpandedPathList);
+					Marshal.FreeHGlobal(expandedPathList);
 				}
 			}
 			return null;
 		}
 
-		private static uint GetCounterInfoPlus(IntPtr hCounter, out uint counterType, out uint defaultScale, out ulong timeBase)
+		private static CounterInfo GetCounterInfo(IntPtr counterHandle)
 		{
-			counterType = 0;
-			defaultScale = 0;
-			timeBase = 0L;
+			CounterInfo info = new CounterInfo();
 
-			IntPtr pdwBufferSize = new IntPtr(0);
-			uint returnCode = Apis.PdhGetCounterInfo(hCounter, false, ref pdwBufferSize, IntPtr.Zero);
+			IntPtr counterBufferSize = new IntPtr(0);
+			uint returnCode = Apis.PdhGetCounterInfo(counterHandle, false, ref counterBufferSize, IntPtr.Zero);
 
 			if (returnCode != PdhResults.PDH_MORE_DATA)
 			{
-				return returnCode;
+				return info;
 			}
 
-			IntPtr lpBuffer = Marshal.AllocHGlobal(pdwBufferSize.ToInt32());
+			IntPtr bufferPointer = Marshal.AllocHGlobal(counterBufferSize.ToInt32());
 			try
 			{
-				if ((Apis.PdhGetCounterInfo(hCounter, false, ref pdwBufferSize, lpBuffer) == PdhResults.PDH_CSTATUS_VALID_DATA) && (lpBuffer != IntPtr.Zero))
+				if ((Apis.PdhGetCounterInfo(counterHandle, false, ref counterBufferSize, bufferPointer) == PdhResults.PDH_CSTATUS_VALID_DATA) && (bufferPointer != IntPtr.Zero))
 				{
-					counterType = (uint)Marshal.ReadInt32(lpBuffer, 4);
-					defaultScale = (uint)Marshal.ReadInt32(lpBuffer, 20);
+					info.Type = (uint)Marshal.ReadInt32(bufferPointer, 4);
+					info.DefaultScale = (uint)Marshal.ReadInt32(bufferPointer, 20);
 				}
 			}
 			finally
 			{
-				Marshal.FreeHGlobal(lpBuffer);
+				Marshal.FreeHGlobal(bufferPointer);
 			}
-			return Apis.PdhGetCounterTimeBase(hCounter, out timeBase);
+
+			ulong timeBase;
+			Apis.PdhGetCounterTimeBase(counterHandle, out timeBase);
+			info.TimeBase = timeBase;
+
+			return info;
 		}
 
 		private bool IsPathValid(string path)
 		{
 			return this._isPreVista ? (Apis.PdhValidatePath(path) == Win32Results.ERROR_SUCCESS) :
-				(Apis.PdhValidatePathEx(this._hDataSource, path) == Win32Results.ERROR_SUCCESS);
+				(Apis.PdhValidatePathEx(this._safeDataSourceHandle, path) == Win32Results.ERROR_SUCCESS);
 		}
 
 		public static string LookupPerfNameByIndex(string machineName, uint index)
 		{
 			if (index < 0)
 			{
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathTranslationFailed"), 0));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), 0));
 			}
 
-			int pcchNameBufferSize = 256;
-			IntPtr szNameBuffer = Marshal.AllocHGlobal(pcchNameBufferSize * 2);
+			int perfNameBufferSize = 256;
+			IntPtr perfNamePointer = Marshal.AllocHGlobal(perfNameBufferSize * 2);
 
 			try
 			{
-				uint returnCode = Apis.PdhLookupPerfNameByIndex(machineName, index, szNameBuffer, ref pcchNameBufferSize);
+				uint returnCode = Apis.PdhLookupPerfNameByIndex(machineName, index, perfNamePointer, ref perfNameBufferSize);
 				if (returnCode == PdhResults.PDH_MORE_DATA)
 				{
-					Marshal.FreeHGlobal(szNameBuffer);
-					szNameBuffer = Marshal.AllocHGlobal(pcchNameBufferSize * 2);
-					returnCode = Apis.PdhLookupPerfNameByIndex(machineName, index, szNameBuffer, ref pcchNameBufferSize);
+					Marshal.FreeHGlobal(perfNamePointer);
+					perfNamePointer = Marshal.AllocHGlobal(perfNameBufferSize * 2);
+					returnCode = Apis.PdhLookupPerfNameByIndex(machineName, index, perfNamePointer, ref perfNameBufferSize);
 				}
 
 				if (returnCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 				{
-					return Marshal.PtrToStringUni(szNameBuffer);
+					return Marshal.PtrToStringUni(perfNamePointer);
 				}
 
-				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathTranslationFailed"), returnCode));
+				throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), returnCode));
 			}
 			finally
 			{
-				Marshal.FreeHGlobal(szNameBuffer);
+				Marshal.FreeHGlobal(perfNamePointer);
 			}
 		}
 
-		private static string MakePath(PDH_COUNTER_PATH_ELEMENTS pathElts, bool bWildcardInstances)
+		private static string MakePath(PDH_COUNTER_PATH_ELEMENTS pathElements, bool isWildcard)
 		{
-			IntPtr pcchBufferSize = new IntPtr(0);
-			if (bWildcardInstances)
+			IntPtr sizeOfCounterPath = new IntPtr(0);
+			if (isWildcard)
 			{
-				pathElts.InstanceIndex = 0;
-				pathElts.InstanceName = "*";
-				pathElts.ParentInstance = null;
+				pathElements.InstanceIndex = 0;
+				pathElements.InstanceName = "*";
+				pathElements.ParentInstance = null;
 			}
-			uint resultCode = Apis.PdhMakeCounterPath(ref pathElts, IntPtr.Zero, ref pcchBufferSize, PdhMakeCounterPathFlags.PDH_PATH_STANDARD_FORMAT);
+			uint resultCode = Apis.PdhMakeCounterPath(ref pathElements, IntPtr.Zero, ref sizeOfCounterPath, PdhMakeCounterPathFlags.PDH_PATH_STANDARD_FORMAT);
 			if (resultCode == PdhResults.PDH_MORE_DATA)
 			{
-				IntPtr szFullPathBuffer = Marshal.AllocHGlobal(pcchBufferSize.ToInt32() * 2);
+				IntPtr fullPathBufferPointer = Marshal.AllocHGlobal(sizeOfCounterPath.ToInt32() * 2);
 				try
 				{
-					resultCode = Apis.PdhMakeCounterPath(ref pathElts, szFullPathBuffer, ref pcchBufferSize, PdhMakeCounterPathFlags.PDH_PATH_STANDARD_FORMAT);
+					resultCode = Apis.PdhMakeCounterPath(ref pathElements, fullPathBufferPointer, ref sizeOfCounterPath, PdhMakeCounterPathFlags.PDH_PATH_STANDARD_FORMAT);
 					if (resultCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 					{
-						return Marshal.PtrToStringUni(szFullPathBuffer);
+						return Marshal.PtrToStringUni(fullPathBufferPointer);
 					}
 
 				}
 				finally
 				{
-					Marshal.FreeHGlobal(szFullPathBuffer);
+					Marshal.FreeHGlobal(fullPathBufferPointer);
 				}
 			}
 
-			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathTranslationFailed"), resultCode));
+			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), resultCode));
 		}
-
 
 		private static PDH_COUNTER_PATH_ELEMENTS ParsePath(string fullPath)
 		{
-			IntPtr pdwBufferSize = new IntPtr(0);
-			uint returnCode = Apis.PdhParseCounterPath(fullPath, IntPtr.Zero, ref pdwBufferSize, 0);
-			switch ((long)returnCode)
+			IntPtr bufferSize = new IntPtr(0);
+			uint returnCode = Apis.PdhParseCounterPath(fullPath, IntPtr.Zero, ref bufferSize, 0);
+			if (returnCode == PdhResults.PDH_MORE_DATA || returnCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 			{
-				case PdhResults.PDH_MORE_DATA:
-				case PdhResults.PDH_CSTATUS_VALID_DATA:
+				IntPtr counterPathBuffer = Marshal.AllocHGlobal(bufferSize.ToInt32());
+				try
+				{
+					returnCode = Apis.PdhParseCounterPath(fullPath, counterPathBuffer, ref bufferSize, 0);	//flags must always be zero
+					if (returnCode == PdhResults.PDH_CSTATUS_VALID_DATA)
 					{
-						IntPtr ptr2 = Marshal.AllocHGlobal(pdwBufferSize.ToInt32());
-						try
-						{
-							returnCode = Apis.PdhParseCounterPath(fullPath, ptr2, ref pdwBufferSize, 0);	//flags must always be zero
-							if (returnCode == PdhResults.PDH_CSTATUS_VALID_DATA)
-							{
-								return (PDH_COUNTER_PATH_ELEMENTS)Marshal.PtrToStructure(ptr2, typeof(PDH_COUNTER_PATH_ELEMENTS));
-							}
-						}
-						finally
-						{
-							Marshal.FreeHGlobal(ptr2);
-						}
-						break;
+						return (PDH_COUNTER_PATH_ELEMENTS)Marshal.PtrToStructure(counterPathBuffer, typeof(PDH_COUNTER_PATH_ELEMENTS));
 					}
+				}
+				finally
+				{
+					Marshal.FreeHGlobal(counterPathBuffer);
+				}
 			}
 
-			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceMgr.GetString("CounterPathTranslationFailed"), returnCode));
+			throw new Exception(string.Format(CultureInfo.CurrentCulture, _resourceManager.GetString("CounterPathTranslationFailed"), returnCode));
 		}
 
 		private void OpenQuery()
 		{
-			if (!_isOpen.IsValueCreated)
+			uint returnCode;
+			if (!_isQueryOpen.IsValueCreated)
 			{
-				uint returnCode = Apis.PdhOpenQueryH(this._hDataSource, IntPtr.Zero, out this._hQuery);
+				returnCode = Apis.PdhOpenQueryH(this._safeDataSourceHandle, IntPtr.Zero, out this._safeQueryHandle);
 				if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
 				{
 					throw BuildException(returnCode);
@@ -301,140 +307,108 @@ namespace PerfTap.Interop
 			}
 		}
 
-		public PerformanceCounterSampleSet ReadNextSet(bool skipReading)
+		public PerformanceCounterSampleSet ReadNextSet()
 		{
 			OpenQuery();
 
-			if (this._isPreVista)
-			{
-				return this.ReadNextSetPreVista(skipReading);
-			}
-
 			long fileTimeStamp = 0;
-			uint returnCode = Apis.PdhCollectQueryDataWithTime(this._hQuery, ref fileTimeStamp);
-			if (skipReading ||
-				((returnCode != PdhResults.PDH_CSTATUS_VALID_DATA) && (returnCode != PdhResults.PDH_NO_DATA)))
+			uint returnCode = this._isPreVista ? Apis.PdhCollectQueryData(this._safeQueryHandle)
+				: Apis.PdhCollectQueryDataWithTime(this._safeQueryHandle, ref fileTimeStamp);
+
+			if (this._isLastSampleBad)
 			{
 				return null;
 			}
+			if ((returnCode != PdhResults.PDH_CSTATUS_VALID_DATA) && (returnCode != PdhResults.PDH_NO_DATA))
+			{
+				//this makes sure next call to ReadNextSet doesn't examine the data, and just returns null
+				this._isLastSampleBad = true;
+				return null;
+			}
 
-			DateTime now = (returnCode == PdhResults.PDH_NO_DATA) ? DateTime.Now :
+			DateTime now = (_isPreVista || returnCode == PdhResults.PDH_NO_DATA) ? DateTime.Now :
 				new DateTime(DateTime.FromFileTimeUtc(fileTimeStamp).Ticks, DateTimeKind.Local);
 
 			PerformanceCounterSample[] counterSamples = new PerformanceCounterSample[this._consumerPathToHandleAndInstanceMap.Count];
-			uint samplesRead = 0, modifiedInvalidSamples = 0, lastErrorReturnCode = 0;
+			uint samplesRead = 0;
 
 			foreach (string key in this._consumerPathToHandleAndInstanceMap.Keys)
 			{
-				PDH_RAW_COUNTER pdh_raw_counter;
-				IntPtr lpdwType = new IntPtr(0);
-				uint counterType,
-					defaultScale = 0;
-				ulong timeBase = 0L;
-				IntPtr hCounter = this._consumerPathToHandleAndInstanceMap[key].hCounter;
-				PdhHelper.GetCounterInfoPlus(hCounter, out counterType, out defaultScale, out timeBase);
-				returnCode = Apis.PdhGetRawCounterValue(hCounter, out lpdwType, out pdh_raw_counter);
-				if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
+				IntPtr counterHandle = this._consumerPathToHandleAndInstanceMap[key].CounterHandle;
+				CounterInfo info = PdhHelper.GetCounterInfo(counterHandle);
+
+				var sample = GetRawCounterSample(counterHandle, key, info, now);
+				if (null != sample.PerformanceCounterSample)
 				{
-					counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, 0.0, 0L, 0L, 0, PerformanceCounterType.RawBase, defaultScale, timeBase, now, (ulong)now.ToFileTime(), (pdh_raw_counter.CStatus == 0) ? returnCode : pdh_raw_counter.CStatus);
-					modifiedInvalidSamples++;
-					lastErrorReturnCode = returnCode;
+					counterSamples[samplesRead++] = sample.PerformanceCounterSample;
 				}
 				else
 				{
-					PDH_FMT_COUNTERVALUE_DOUBLE pdh_fmt_countervalue_double;
-					long fileTime = (pdh_raw_counter.TimeStamp.dwHighDateTime << 0x20) + ((long)((ulong)pdh_raw_counter.TimeStamp.dwLowDateTime));
-					DateTime timeStamp = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
-					returnCode = Apis.PdhGetFormattedCounterValue(hCounter, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out lpdwType, out pdh_fmt_countervalue_double);
-					if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
-					{
-						counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, 0.0, (ulong)pdh_raw_counter.FirstValue, (ulong)pdh_raw_counter.SecondValue, pdh_raw_counter.MultiCount, (PerformanceCounterType)counterType, defaultScale, timeBase, timeStamp, (ulong)fileTime, (pdh_fmt_countervalue_double.CStatus == 0) ? returnCode : pdh_raw_counter.CStatus);
-						modifiedInvalidSamples++;
-						lastErrorReturnCode = returnCode;
-						continue;
-					}
-					counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, pdh_fmt_countervalue_double.doubleValue, (ulong)pdh_raw_counter.FirstValue, (ulong)pdh_raw_counter.SecondValue, pdh_raw_counter.MultiCount, (PerformanceCounterType)lpdwType.ToInt32(), defaultScale, timeBase, timeStamp, (ulong)fileTime, pdh_fmt_countervalue_double.CStatus);
+					counterSamples[samplesRead++] = GetFormattedCounterSample(counterHandle, key, info, sample.RawCounter);
 				}
 			}
 
-			return new PerformanceCounterSampleSet(now, counterSamples);
+			this._isLastSampleBad = false;
+			return new PerformanceCounterSampleSet(this._isPreVista ? counterSamples[samplesRead].Timestamp : now, counterSamples);
 		}
 
-		private PerformanceCounterSampleSet ReadNextSetPreVista(bool skipReading)
+		private RawCounterSample GetRawCounterSample(IntPtr counterHandle, string key, CounterInfo info, DateTime? now)
 		{
-			uint returnCode = Apis.PdhCollectQueryData(this._hQuery);
-			if (skipReading ||
-				((returnCode != PdhResults.PDH_CSTATUS_VALID_DATA) && (returnCode != PdhResults.PDH_NO_DATA)))
+			IntPtr counterType = new IntPtr(0);
+			PDH_RAW_COUNTER rawCounter;
+			uint returnCode = Apis.PdhGetRawCounterValue(counterHandle, out counterType, out rawCounter);
+			if (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)
 			{
-				return null;
+				DateTime timeStamp = this._isPreVista ? DateTime.Now : now.Value;
+				return new RawCounterSample() 
+				{ 
+					PerformanceCounterSample = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName,
+					0.0, 0L, 0L, 0,
+					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
+					PerformanceCounterType.RawBase, info.DefaultScale, info.TimeBase, timeStamp, (ulong)timeStamp.ToFileTime(), (rawCounter.CStatus == 0) ? returnCode : rawCounter.CStatus)
+				};
 			}
-			PerformanceCounterSample[] counterSamples = new PerformanceCounterSample[this._consumerPathToHandleAndInstanceMap.Count];
-			uint samplesRead = 0,
-				modifiedInvalidSamples = 0,
-				lastErrorReturnCode = 0;
-
-			DateTime now = DateTime.Now;
-
-			foreach (string key in this._consumerPathToHandleAndInstanceMap.Keys)
+			//TODO: only for _isPreVista?
+			else if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
 			{
-				PDH_RAW_COUNTER pdh_raw_counter;
-				PDH_FMT_COUNTERVALUE_DOUBLE pdh_fmt_countervalue_double;
-				IntPtr lpdwType = new IntPtr(0);
-				uint counterType,
-					defaultScale = 0;
-				ulong timeBase = 0L;
-				IntPtr hCounter = this._consumerPathToHandleAndInstanceMap[key].hCounter;
-				PdhHelper.GetCounterInfoPlus(hCounter, out counterType, out defaultScale, out timeBase);
-				returnCode = Apis.PdhGetRawCounterValue(hCounter, out lpdwType, out pdh_raw_counter);
-				switch ((long)returnCode)
-				{
-					case PdhResults.PDH_INVALID_DATA:
-					case PdhResults.PDH_NO_DATA:
-						{
-							counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, 0.0, 0L, 0L, 0, PerformanceCounterType.RawBase, defaultScale, timeBase, DateTime.Now, (ulong)DateTime.Now.ToFileTime(), pdh_raw_counter.CStatus);
-							modifiedInvalidSamples++;
-							lastErrorReturnCode = returnCode;
-							continue;
-						}
-					case PdhResults.PDH_CSTATUS_VALID_DATA:
-						break;
-
-					default:
-						throw BuildException(returnCode);
-				}
-
-				long fileTime = (pdh_raw_counter.TimeStamp.dwHighDateTime << 0x20) + ((long)((ulong)pdh_raw_counter.TimeStamp.dwLowDateTime));
-				now = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
-				returnCode = Apis.PdhGetFormattedCounterValue(hCounter, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out lpdwType, out pdh_fmt_countervalue_double);
-				switch ((long)returnCode)
-				{
-					case PdhResults.PDH_INVALID_DATA:
-					case PdhResults.PDH_NO_DATA:
-						{
-							counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, 0.0, (ulong)pdh_raw_counter.FirstValue, (ulong)pdh_raw_counter.SecondValue, pdh_raw_counter.MultiCount, (PerformanceCounterType)counterType, defaultScale, timeBase, now, (ulong)fileTime, pdh_fmt_countervalue_double.CStatus);
-							modifiedInvalidSamples++;
-							lastErrorReturnCode = returnCode;
-							continue;
-						}
-					case PdhResults.PDH_CSTATUS_VALID_DATA:
-						break;
-
-					default:
-						throw BuildException(returnCode);
-				}
-				counterSamples[samplesRead++] = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName, pdh_fmt_countervalue_double.doubleValue, (ulong)pdh_raw_counter.FirstValue, (ulong)pdh_raw_counter.SecondValue, pdh_raw_counter.MultiCount, (PerformanceCounterType)lpdwType.ToInt32(), defaultScale, timeBase, now, (ulong)fileTime, pdh_fmt_countervalue_double.CStatus);
+				throw BuildException(returnCode);
 			}
 
-			return new PerformanceCounterSampleSet(now, counterSamples);
+			return new RawCounterSample() { RawCounter = rawCounter };
 		}
 
-		private static string[] ParsePdhMultiStringBuffer(ref IntPtr strNative, int strSize)
+		private PerformanceCounterSample GetFormattedCounterSample(IntPtr counterHandle, string name, CounterInfo info, PDH_RAW_COUNTER rawCounter)
+		{
+			IntPtr counterType = new IntPtr(0);
+			long fileTime = (rawCounter.TimeStamp.dwHighDateTime << 0x20) + ((long)((ulong)rawCounter.TimeStamp.dwLowDateTime));
+			DateTime timeStamp2 = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
+			PDH_FMT_COUNTERVALUE_DOUBLE doubleFormattedCounter;
+			uint returnCode = Apis.PdhGetFormattedCounterValue(counterHandle, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out counterType, out doubleFormattedCounter);
+			if (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)
+			{
+				return new PerformanceCounterSample(name, this._consumerPathToHandleAndInstanceMap[name].InstanceName,
+					0.0, (ulong)rawCounter.FirstValue, (ulong)rawCounter.SecondValue, rawCounter.MultiCount,
+					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
+					(PerformanceCounterType)info.Type, info.DefaultScale, info.TimeBase, timeStamp2, (ulong)fileTime, (doubleFormattedCounter.CStatus == 0) ? returnCode : rawCounter.CStatus);
+			}
+			//TODO: only for _isPreVista?
+			else if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
+			{
+				throw BuildException(returnCode);
+			}
+
+			return new PerformanceCounterSample(name, this._consumerPathToHandleAndInstanceMap[name].InstanceName,
+				doubleFormattedCounter.doubleValue, (ulong)rawCounter.FirstValue, (ulong)rawCounter.SecondValue, rawCounter.MultiCount,
+				(PerformanceCounterType)counterType.ToInt32(), info.DefaultScale, info.TimeBase, timeStamp2, (ulong)fileTime, doubleFormattedCounter.CStatus);
+		}
+
+		private static string[] ParsePdhMultiStringBuffer(ref IntPtr nativeStringPointer, int strSize)
 		{
 			int bufferIndex = 0;
 			string outputString = string.Empty;
 			while (bufferIndex <= ((strSize * 2) - 4))
 			{
-				int characterCode = Marshal.ReadInt32(strNative, bufferIndex);
+				int characterCode = Marshal.ReadInt32(nativeStringPointer, bufferIndex);
 				if (characterCode == 0)
 				{
 					break;
@@ -449,10 +423,10 @@ namespace PerfTap.Interop
 
 		public static string TranslateLocalCounterPath(string englishPath)
 		{
-			PDH_COUNTER_PATH_ELEMENTS pCounterPathElements = PdhHelper.ParsePath(englishPath);
+			PDH_COUNTER_PATH_ELEMENTS counterPathElements = PdhHelper.ParsePath(englishPath);
 
-			string counterName = pCounterPathElements.CounterName.ToLower(CultureInfo.InvariantCulture),
-				objectName = pCounterPathElements.ObjectName.ToLower(CultureInfo.InvariantCulture);
+			string counterName = counterPathElements.CounterName.ToLower(CultureInfo.InvariantCulture),
+				objectName = counterPathElements.ObjectName.ToLower(CultureInfo.InvariantCulture);
 
 			string[] counterNames = (string[])Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009").GetValue("Counter");
 			
@@ -482,10 +456,10 @@ namespace PerfTap.Interop
 				}
 			}
 
-			pCounterPathElements.ObjectName = PdhHelper.LookupPerfNameByIndex(pCounterPathElements.MachineName, (uint)objectIndex);
-			pCounterPathElements.CounterName = PdhHelper.LookupPerfNameByIndex(pCounterPathElements.MachineName, (uint)counterIndex);
+			counterPathElements.ObjectName = PdhHelper.LookupPerfNameByIndex(counterPathElements.MachineName, (uint)objectIndex);
+			counterPathElements.CounterName = PdhHelper.LookupPerfNameByIndex(counterPathElements.MachineName, (uint)counterIndex);
 
-			return PdhHelper.MakePath(pCounterPathElements, false);
+			return PdhHelper.MakePath(counterPathElements, false);
 		}
 	}
 }

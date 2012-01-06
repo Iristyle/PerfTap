@@ -2,33 +2,18 @@ namespace PerfTap.Counter
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Diagnostics.CodeAnalysis;
 	using System.Linq;
-	using System.Reflection;
-	using System.Resources;
+	using System.Collections.ObjectModel;
 
 	public class PerformanceCounterSampleSet
 	{
-		// Fields
-		private ResourceManager _resourceMgr;
-
-		// Methods
-		internal PerformanceCounterSampleSet()
-		{
-			this.Timestamp = DateTime.MinValue;
-			this._resourceMgr = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
-		}
-
-		internal PerformanceCounterSampleSet(DateTime timeStamp, PerformanceCounterSample[] counterSamples)
-			: this()
+		public PerformanceCounterSampleSet(DateTime timeStamp, PerformanceCounterSample[] counterSamples)
 		{
 			this.Timestamp = timeStamp;
-			this.CounterSamples = counterSamples;
+			this.CounterSamples = new ReadOnlyCollection<PerformanceCounterSample>(counterSamples);
 		}
 
-		// Properties
-		[SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Scope = "member", Target = "Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSample.CounterSamples", Justification = "A string[] is required here because that is the type Powershell supports")]
-		public PerformanceCounterSample[] CounterSamples { get; set; }
-		public DateTime Timestamp { get; set; }
+		public ReadOnlyCollection<PerformanceCounterSample> CounterSamples { get; private set; }
+		public DateTime Timestamp { get; private set; }
 	}
 }
