@@ -15,12 +15,8 @@
 		//TODO: replace with code that reads from Xml config
 		private static ICounterConfiguration counterConfig = new CounterConfiguration()
 		{
+			SampleInterval = TimeSpan.FromSeconds(2),
 			DefinitionPaths = new List<string>() { "CounterDefinitions\\system.counters" }
-		};
-		private static IPollingConfiguration pollingConfig = new PollingConfiguration()
-		{
-			Interval = TimeSpan.FromSeconds(5),
-			Concurrency = PollingTaskConcurrency.AllowMultipleTasks
 		};
 		private static IReportingConfiguration reportingConfig = new ReportingConfiguration()
 		{
