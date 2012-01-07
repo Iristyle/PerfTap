@@ -84,11 +84,21 @@
     <Compile Include="Net\UdpMessenger.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CounterDefinitions\aspnet.counters" />
-    <None Include="CounterDefinitions\dotnet.counters" />
-    <None Include="CounterDefinitions\sqlserver.counters" />
-    <None Include="CounterDefinitions\system.counters" />
-    <None Include="CounterDefinitions\webservice.counters" />
+    <Content Include="CounterDefinitions\aspnet.counters">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CounterDefinitions\dotnet.counters">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CounterDefinitions\sqlserver.counters">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CounterDefinitions\system.counters">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CounterDefinitions\webservice.counters">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
