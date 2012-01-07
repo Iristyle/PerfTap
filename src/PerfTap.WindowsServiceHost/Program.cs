@@ -42,15 +42,15 @@
 				// It will kick off the service start point, but never kill it.
 				// Shut down the debugger to exit
 				//TODO: this factory needs to be registered in a container to make this more general purpose 
-				using (TimerService service = new TimerService(cancellation => new MonitoringTaskFactory(counterConfig, reportingConfig).CreateTask(cancellation), pollingConfig))
+				using (var service = new TaskService(cancellation => new MonitoringTaskFactory(counterConfig, reportingConfig).CreateContinuousTask(cancellation)))
 				{
 					// Put a breakpoint in OnStart to catch it
-					typeof(TimerService).GetMethod("OnStart", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(service, new object[] { null });
+					typeof(CustomServiceBase).GetMethod("OnStart", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(service, new object[] { null });
 					//make sure we don't release the instance yet ;0
 					Thread.Sleep(Timeout.Infinite);
 				}
 #else
-                    ServiceBase.Run(new[] { new Service(config) });
+                    ServiceBase.Run(new[] { new TaskService(cancellation => new MonitoringTaskFactory(counterConfig, reportingConfig).CreateContinuousTask(cancellation)) });
 #endif
 			}
 			catch (Exception ex)
