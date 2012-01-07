@@ -20,8 +20,9 @@ namespace PerfTap.Configuration
 		[ConfigurationProperty("pollingFrequency", DefaultValue=5, IsRequired=false)]
 		[PositiveTimeSpanValidator()]
 		[TimeSpanValidator(MinValueString="00:00:01",ExcludeRange=false)]
-		public TimeSpan PollingInterval { get; set; }
+		public TimeSpan SampleInterval { get; set; }
 
+		[ConfigurationProperty("definitionPaths", IsRequired=true)]
 		public List<string> DefinitionPaths { get; set; }
 
 		ReadOnlyCollection<string> ICounterConfiguration.DefinitionPaths

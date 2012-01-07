@@ -8,5 +8,7 @@ namespace PerfTap.Configuration
 	public interface ICounterConfiguration
 	{
 		ReadOnlyCollection<string> DefinitionPaths { get; }
+
+		TimeSpan SampleInterval { get; }
 	}
 }
