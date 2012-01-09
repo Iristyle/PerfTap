@@ -57,6 +57,8 @@
     <Compile Include="Interop\PdhWildcardPathFlags.cs" />
     <Compile Include="Interop\PDH_FMT_COUNTERVALUE_DOUBLE.cs" />
     <Compile Include="Interop\PDH_RAW_COUNTER.cs" />
+    <Compile Include="Interop\PerfmonPrivileges.cs" />
+    <Compile Include="Interop\PrivilegeConstants.cs" />
     <Compile Include="Interop\Win32Messages.cs" />
     <Compile Include="Counter\PerfmonCounterReader.cs" />
     <Compile Include="Counter\PerfomanceCounterSample.cs" />

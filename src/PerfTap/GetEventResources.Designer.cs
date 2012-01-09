@@ -448,6 +448,15 @@ namespace PerfTap {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Internal privilegs API call failed. Error: {0:x8}..
+        /// </summary>
+        internal static string PrivilegesApiError {
+            get {
+                return ResourceManager.GetString("PrivilegesApiError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} provider writes events to the {1} log..
         /// </summary>
         internal static string ProviderLogLink {

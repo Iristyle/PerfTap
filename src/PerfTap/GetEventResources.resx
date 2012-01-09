@@ -271,4 +271,7 @@
   <data name="InvalidPattern" xml:space="preserve">
     <value>InvalidPattern=The specified wildcard pattern is not valid: {0}</value>
   </data>
+  <data name="PrivilegesApiError" xml:space="preserve">
+    <value>Internal privilegs API call failed. Error: {0:x8}.</value>
+  </data>
 </root>
