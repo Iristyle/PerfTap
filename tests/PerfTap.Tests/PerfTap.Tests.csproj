@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -50,6 +51,7 @@
   <ItemGroup>
     <Compile Include="CounterFileParserTest.cs" />
     <Compile Include="Interop\PdhHelperTests.cs" />
+    <Compile Include="MonitoringTaskFactoryTest.cs" />
     <Compile Include="Net\PacketBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
