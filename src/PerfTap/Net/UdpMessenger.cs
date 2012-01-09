@@ -10,6 +10,7 @@ namespace PerfTap.Net
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Net.Sockets;
+	using System.Net;
 
 	/// <summary>
 	/// TODO: Update summary.
@@ -21,6 +22,7 @@ namespace PerfTap.Net
 		private readonly string _hostname;
 		private readonly int _port;
 		private readonly UdpClient _client;
+		private readonly IPEndPoint _endpoint;
 		private bool _disposed;
 
 		/// <summary>
@@ -32,7 +34,8 @@ namespace PerfTap.Net
 		{
 			_hostname = hostname;
 			_port = port;
-			_client = new UdpClient(hostname, port);
+			_client = new UdpClient();
+			_endpoint = new IPEndPoint(Dns.GetHostEntry(hostname).AddressList[0], port);
 			_client.Client.SendBufferSize = 0;
 		}
 
@@ -81,6 +84,7 @@ namespace PerfTap.Net
 
 			try
 			{
+				data.RemoteEndPoint = _endpoint;
 				data.SendPacketsElements = metrics.ToMaximumBytePackets()
 					.Select(bytes => new SendPacketsElement(bytes, 0, bytes.Length, true))
 					.ToArray();
