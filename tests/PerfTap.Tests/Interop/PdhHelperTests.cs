@@ -26,7 +26,7 @@ namespace PerfTap.Interop.Tests
 		[Fact]
 		public void Constructor_WithComputersOverload_DoesNotThrow()
 		{
-			Assert.DoesNotThrow(() => new PdhHelper(new string[] { Environment.MachineName}, PerfmonCounterReader.DefaultCounters));
+			Assert.DoesNotThrow(() => new PdhHelper(new string[] { Environment.MachineName}, PerfmonCounterReader.DefaultCounters, true));
 		}
 
 		[Fact]
@@ -42,7 +42,7 @@ namespace PerfTap.Interop.Tests
 		[Fact]
 		public void ReadNextSet_WithComputersOverload_DefaultCounters_RetrievesAll()
 		{
-			using (var pdhHelper = new PdhHelper(new string[] { Environment.MachineName }, PerfmonCounterReader.DefaultCounters))
+			using (var pdhHelper = new PdhHelper(new string[] { Environment.MachineName }, PerfmonCounterReader.DefaultCounters, true))
 			{
 				var counters = pdhHelper.ReadNextSet();
 				Assert.True(counters.CounterSamples.Count >= 6);

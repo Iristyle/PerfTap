@@ -32,20 +32,22 @@ namespace PerfTap.Interop
 		private PdhSafeQueryHandle _safeQueryHandle;
 		private readonly bool _isPreVista;
 		private bool _isLastSampleBad;
+		private readonly bool _ignoreBadStatusCodes = true;
 		private readonly Lazy<bool> _isQueryOpen = new Lazy<bool>();
 
 		public PdhHelper(IEnumerable<string> counters)
-			: this(Environment.OSVersion.Version.Major < 6, new string[0], counters)
+			: this(Environment.OSVersion.Version.Major < 6, new string[0], counters, true)
 		{ }
 
-		public PdhHelper(IEnumerable<string> computerNames, IEnumerable<string> counters)
-			: this(Environment.OSVersion.Version.Major < 6, computerNames, counters)
+		public PdhHelper(IEnumerable<string> computerNames, IEnumerable<string> counters, bool ignoreBadStatusCodes)
+			: this(Environment.OSVersion.Version.Major < 6, computerNames, counters, ignoreBadStatusCodes)
 		{}
 		
 		//TODO: keeping this *only* for testing purposes -- but not sure that even makes sense
-		internal PdhHelper(bool isPreVista, IEnumerable<string> computerNames, IEnumerable<string> counters)
+		internal PdhHelper(bool isPreVista, IEnumerable<string> computerNames, IEnumerable<string> counters, bool ignoreBadStatusCodes)
 		{
 			this._isPreVista = isPreVista;
+			this._ignoreBadStatusCodes = ignoreBadStatusCodes;
 			ConnectToDataSource();
 
 			List<string> validPaths = ParsePaths(counters.PrefixWithComputerNames(computerNames)).ToList();
@@ -336,13 +338,16 @@ namespace PerfTap.Interop
 				CounterInfo info = PdhHelper.GetCounterInfo(counterHandle);
 
 				var sample = GetRawCounterSample(counterHandle, key, info, now);
-				if (null != sample.PerformanceCounterSample)
+				var performanceSample = (null != sample.PerformanceCounterSample) ? sample.PerformanceCounterSample :
+					GetFormattedCounterSample(counterHandle, key, info, sample.RawCounter);
+
+				if (!this._ignoreBadStatusCodes && (performanceSample.Status != 0))
 				{
-					counterSamples[samplesRead++] = sample.PerformanceCounterSample;
+					throw BuildException(performanceSample.Status);
 				}
-				else
+				if (performanceSample.Status == 0)
 				{
-					counterSamples[samplesRead++] = GetFormattedCounterSample(counterHandle, key, info, sample.RawCounter);
+					counterSamples[samplesRead++] = performanceSample;
 				}
 			}
 
@@ -355,7 +360,10 @@ namespace PerfTap.Interop
 			IntPtr counterType = new IntPtr(0);
 			PDH_RAW_COUNTER rawCounter;
 			uint returnCode = Apis.PdhGetRawCounterValue(counterHandle, out counterType, out rawCounter);
-			if (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)
+			//vista and above, any non-valid result is returned like this
+			if ((!_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)) ||
+				//below vista, return data for no_data and invalid_data, otherwise throw 
+				(_isPreVista && (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)))
 			{
 				DateTime timeStamp = this._isPreVista ? DateTime.Now : now.Value;
 				return new RawCounterSample() 
@@ -363,15 +371,16 @@ namespace PerfTap.Interop
 					PerformanceCounterSample = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName,
 					0.0, 0L, 0L, 0,
 					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
+					//TODO: not sure if its useful to stuff a bad returnCode in for status, as VerifySamples will throw when status isn't 0... not sure that's useful
 					PerformanceCounterType.RawBase, info.DefaultScale, info.TimeBase, timeStamp, (ulong)timeStamp.ToFileTime(), (rawCounter.CStatus == 0) ? returnCode : rawCounter.CStatus)
 				};
 			}
-			//TODO: only for _isPreVista?
-			else if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
+			else if (_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA))
 			{
 				throw BuildException(returnCode);
 			}
 
+			//this is only used when return code is 0 -- PdhResults.PDH_CSTATUS_VALID_DATA
 			return new RawCounterSample() { RawCounter = rawCounter };
 		}
 
@@ -382,15 +391,19 @@ namespace PerfTap.Interop
 			DateTime timeStamp2 = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
 			PDH_FMT_COUNTERVALUE_DOUBLE doubleFormattedCounter;
 			uint returnCode = Apis.PdhGetFormattedCounterValue(counterHandle, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out counterType, out doubleFormattedCounter);
-			if (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)
+			
+			//vista and above, any non-valid result is returned like this			
+			if ((!_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)) ||
+				//below vista, return data for no_data and invalid_data, otherwise throw 
+				(_isPreVista && (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)))
 			{
 				return new PerformanceCounterSample(name, this._consumerPathToHandleAndInstanceMap[name].InstanceName,
 					0.0, (ulong)rawCounter.FirstValue, (ulong)rawCounter.SecondValue, rawCounter.MultiCount,
+					//TODO: not sure if its useful to stuff a bad returnCode in for status, as VerifySamples will throw when status isn't 0... not sure that's useful
 					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
 					(PerformanceCounterType)info.Type, info.DefaultScale, info.TimeBase, timeStamp2, (ulong)fileTime, (doubleFormattedCounter.CStatus == 0) ? returnCode : rawCounter.CStatus);
-			}
-			//TODO: only for _isPreVista?
-			else if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
+			}			
+			else if (_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA))
 			{
 				throw BuildException(returnCode);
 			}
@@ -411,7 +424,7 @@ namespace PerfTap.Interop
 				{
 					break;
 				}
-				outputString = outputString + ((char)characterCode);
+				outputString += ((char)characterCode);
 				bufferIndex += 2;
 			}
 

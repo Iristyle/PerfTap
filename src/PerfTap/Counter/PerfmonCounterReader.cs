@@ -16,6 +16,7 @@ namespace PerfTap.Counter
 	public class PerfmonCounterReader
 	{		
 		private readonly IEnumerable<string> _computerNames = new string[0];
+		private readonly bool _ignoreBadStatusCodes = true; 
 		private const int INFINITIY = -1;
 
 		public PerfmonCounterReader(IEnumerable<string> computerNames)
@@ -28,6 +29,12 @@ namespace PerfTap.Counter
 		public PerfmonCounterReader()
 		{
 			this._computerNames = new string[0];
+		}
+
+		public PerfmonCounterReader(bool ignoreBadStatusCodes)
+		{
+			this._computerNames = new string[0];
+			this._ignoreBadStatusCodes = ignoreBadStatusCodes;
 		}
 
 		public IEnumerable<PerformanceCounterSampleSet> GetCounterSamples(TimeSpan sampleInterval, int count, CancellationToken token)
@@ -63,7 +70,7 @@ namespace PerfTap.Counter
 
 		private IEnumerable<PerformanceCounterSampleSet> ProcessGetCounter(IEnumerable<string> counters, TimeSpan sampleInterval, int maxSamples, CancellationToken token)
 		{
-			using (PdhHelper helper = new PdhHelper(this._computerNames, counters))
+			using (PdhHelper helper = new PdhHelper(this._computerNames, counters, this._ignoreBadStatusCodes))
 			{
 				int samplesRead = 0;
 
@@ -72,7 +79,6 @@ namespace PerfTap.Counter
 					PerformanceCounterSampleSet set = helper.ReadNextSet();
 					if (null != set)
 					{
-						this.VerifySamples(set);
 						yield return set;
 					}
 					//TODO: log a null set like this?
@@ -102,15 +108,6 @@ namespace PerfTap.Counter
 			{
 				return PdhHelper.TranslateLocalCounterPath(path);
 			});
-		}
-
-		private void VerifySamples(PerformanceCounterSampleSet set)
-		{
-			//TODO: might want to tweak this so it doesn't always throw... 
-			if (set.CounterSamples.Any(sample => sample.Status != 0))
-			{
-				throw new Exception(string.Format(CultureInfo.InvariantCulture, GetEventResources.CounterSampleDataInvalid, new object[0]));
-			}
 		}
 	}
 }
