@@ -10,14 +10,11 @@ namespace PerfTap.Counter
 	using System.Collections.Generic;
 	using System.Globalization;
 	using System.Linq;
-	using System.Reflection;
-	using System.Resources;
 	using System.Threading;
 	using PerfTap.Interop;
 
 	public class PerfmonCounterReader
-	{
-		private static readonly ResourceManager _resourceManager = new ResourceManager("GetEventResources", Assembly.GetExecutingAssembly());
+	{		
 		private readonly IEnumerable<string> _computerNames = new string[0];
 		private const int INFINITIY = -1;
 
@@ -109,9 +106,10 @@ namespace PerfTap.Counter
 
 		private void VerifySamples(PerformanceCounterSampleSet set)
 		{
+			//TODO: might want to tweak this so it doesn't always throw... 
 			if (set.CounterSamples.Any(sample => sample.Status != 0))
 			{
-				throw new Exception(string.Format(CultureInfo.InvariantCulture, _resourceManager.GetString("CounterSampleDataInvalid"), new object[0]));
+				throw new Exception(string.Format(CultureInfo.InvariantCulture, GetEventResources.CounterSampleDataInvalid, new object[0]));
 			}
 		}
 	}
