@@ -22,12 +22,22 @@ namespace PerfTap.Configuration
 		[TimeSpanValidator(MinValueString="00:00:01",ExcludeRange=false)]
 		public TimeSpan SampleInterval { get; set; }
 
-		[ConfigurationProperty("definitionPaths", IsRequired=true)]
+		[ConfigurationProperty("definitionPaths", IsRequired=false)]
 		public List<string> DefinitionPaths { get; set; }
 
 		ReadOnlyCollection<string> ICounterConfiguration.DefinitionPaths
 		{
-			get { return new ReadOnlyCollection<string>(DefinitionPaths); }
+			get { return new ReadOnlyCollection<string>(DefinitionPaths ?? (IList<string>)new string[0]); }
 		}
+
+		[ConfigurationProperty("counterDefinitions", IsRequired = false)]
+		public List<string> CounterDefinitions { get; set; }
+
+		ReadOnlyCollection<string> ICounterConfiguration.CounterDefinitions
+		{
+			get { return new ReadOnlyCollection<string>(CounterDefinitions ?? (IList<string>)new string[0]); }
+		}
+
+		//TODO: 1-9-2012 -- add error handling to ensure that there's always at least a set of definition paths OR counter definitions supplied by the user
 	}
 }

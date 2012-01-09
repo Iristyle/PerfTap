@@ -36,6 +36,8 @@ namespace PerfTap
 			_counterConfig = counterConfig;
 			_counterPaths = counterConfig.DefinitionPaths
 				.SelectMany(path => CounterFileParser.ReadCountersFromFile(path))
+				.Union(_counterConfig.CounterDefinitions)
+				.Distinct(StringComparer.CurrentCultureIgnoreCase)
 				.ToList();
 			_reportingConfig = reportingConfig;
 		}
