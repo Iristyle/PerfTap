@@ -10,7 +10,7 @@ namespace PerfTap.Interop
 	using NLog;
 	using PerfTap.Counter;
 
-	public class PdhHelper 
+	public class PdhHelper
 		: IDisposable
 	{
 		private struct CounterHandleNInstance
@@ -41,8 +41,8 @@ namespace PerfTap.Interop
 
 		public PdhHelper(IEnumerable<string> computerNames, IEnumerable<string> counters, bool ignoreBadStatusCodes)
 			: this(Environment.OSVersion.Version.Major < 6, computerNames, counters, ignoreBadStatusCodes)
-		{}
-		
+		{ }
+
 		//TODO: keeping this *only* for testing purposes -- but not sure that even makes sense
 		internal PdhHelper(bool isPreVista, IEnumerable<string> computerNames, IEnumerable<string> counters, bool ignoreBadStatusCodes)
 		{
@@ -330,7 +330,7 @@ namespace PerfTap.Interop
 				new DateTime(DateTime.FromFileTimeUtc(fileTimeStamp).Ticks, DateTimeKind.Local);
 
 			PerformanceCounterSample[] counterSamples = new PerformanceCounterSample[this._consumerPathToHandleAndInstanceMap.Count];
-			uint samplesRead = 0;
+			int samplesRead = 0;
 
 			foreach (string key in this._consumerPathToHandleAndInstanceMap.Keys)
 			{
@@ -352,6 +352,11 @@ namespace PerfTap.Interop
 			}
 
 			this._isLastSampleBad = false;
+			//in the event we skipped bad data
+			if (samplesRead < counterSamples.Length)
+			{
+				Array.Resize(ref counterSamples, samplesRead);	
+			}
 			return new PerformanceCounterSampleSet(this._isPreVista ? counterSamples[samplesRead].Timestamp : now, counterSamples);
 		}
 
@@ -366,12 +371,12 @@ namespace PerfTap.Interop
 				(_isPreVista && (returnCode == PdhResults.PDH_INVALID_DATA || returnCode == PdhResults.PDH_NO_DATA)))
 			{
 				DateTime timeStamp = this._isPreVista ? DateTime.Now : now.Value;
-				return new RawCounterSample() 
-				{ 
+				return new RawCounterSample()
+				{
 					PerformanceCounterSample = new PerformanceCounterSample(key, this._consumerPathToHandleAndInstanceMap[key].InstanceName,
 					0.0, 0L, 0L, 0,
-					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
-					//TODO: not sure if its useful to stuff a bad returnCode in for status, as VerifySamples will throw when status isn't 0... not sure that's useful
+						//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
+						//TODO: not sure if its useful to stuff a bad returnCode in for status, as VerifySamples will throw when status isn't 0... not sure that's useful
 					PerformanceCounterType.RawBase, info.DefaultScale, info.TimeBase, timeStamp, (ulong)timeStamp.ToFileTime(), (rawCounter.CStatus == 0) ? returnCode : rawCounter.CStatus)
 				};
 			}
@@ -391,7 +396,7 @@ namespace PerfTap.Interop
 			DateTime timeStamp2 = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
 			PDH_FMT_COUNTERVALUE_DOUBLE doubleFormattedCounter;
 			uint returnCode = Apis.PdhGetFormattedCounterValue(counterHandle, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out counterType, out doubleFormattedCounter);
-			
+
 			//vista and above, any non-valid result is returned like this			
 			if ((!_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)) ||
 				//below vista, return data for no_data and invalid_data, otherwise throw 
@@ -402,7 +407,7 @@ namespace PerfTap.Interop
 					//TODO: not sure if its useful to stuff a bad returnCode in for status, as VerifySamples will throw when status isn't 0... not sure that's useful
 					//TODO: original code just uses pdh_raw_counter.CStatus when _isPreVista
 					(PerformanceCounterType)info.Type, info.DefaultScale, info.TimeBase, timeStamp2, (ulong)fileTime, (doubleFormattedCounter.CStatus == 0) ? returnCode : rawCounter.CStatus);
-			}			
+			}
 			else if (_isPreVista && (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA))
 			{
 				throw BuildException(returnCode);
@@ -440,7 +445,7 @@ namespace PerfTap.Interop
 				objectName = counterPathElements.ObjectName.ToLower(CultureInfo.InvariantCulture);
 
 			string[] counterNames = (string[])Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009").GetValue("Counter");
-			
+
 			int counterIndex = -1, objectIndex = -1;
 
 			for (int i = 1; i < counterNames.Length; i++)
