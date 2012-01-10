@@ -389,7 +389,7 @@ namespace PerfTap.Interop
 		private PerformanceCounterSample GetFormattedCounterSample(IntPtr counterHandle, string name, CounterInfo info, PDH_RAW_COUNTER rawCounter)
 		{
 			IntPtr counterType = new IntPtr(0);
-			long fileTime = (rawCounter.TimeStamp.dwHighDateTime << 0x20) + ((long)((ulong)rawCounter.TimeStamp.dwLowDateTime));
+			long fileTime = (((long)rawCounter.TimeStamp.dwHighDateTime) << 0x20) + rawCounter.TimeStamp.dwLowDateTime;
 			DateTime timeStamp2 = new DateTime(DateTime.FromFileTimeUtc(fileTime).Ticks, DateTimeKind.Local);
 			PDH_FMT_COUNTERVALUE_DOUBLE doubleFormattedCounter;
 			uint returnCode = Apis.PdhGetFormattedCounterValue(counterHandle, PdhFormat.PDH_FMT_NOCAP100 + PdhFormat.PDH_FMT_DOUBLE, out counterType, out doubleFormattedCounter);
