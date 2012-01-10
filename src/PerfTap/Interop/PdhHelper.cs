@@ -33,7 +33,6 @@ namespace PerfTap.Interop
 		private readonly bool _isPreVista;
 		private bool _isLastSampleBad;
 		private readonly bool _ignoreBadStatusCodes = true;
-		private readonly Lazy<bool> _isQueryOpen = new Lazy<bool>();
 
 		public PdhHelper(IEnumerable<string> counters)
 			: this(Environment.OSVersion.Version.Major < 6, new string[0], counters, true)
@@ -57,6 +56,15 @@ namespace PerfTap.Interop
 
 			OpenQuery();
 			AddCounters(validPaths);
+		}
+
+		private void OpenQuery()
+		{
+			uint returnCode = Apis.PdhOpenQueryH(this._safeDataSourceHandle, IntPtr.Zero, out this._safeQueryHandle);
+			if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
+			{
+				throw BuildException(returnCode);
+			}
 		}
 
 		private IEnumerable<string> ParsePaths(IEnumerable<string> allCounterPaths)
@@ -100,7 +108,7 @@ namespace PerfTap.Interop
 		{
 			uint resultCode = (uint)PdhResults.PDH_CSTATUS_VALID_DATA;
 			foreach (string validPath in validPaths)
-			{
+			{				
 				IntPtr counterPointer;
 				resultCode = Apis.PdhAddCounter(this._safeQueryHandle, validPath, IntPtr.Zero, out counterPointer);
 				if (resultCode == PdhResults.PDH_CSTATUS_VALID_DATA)
@@ -116,6 +124,8 @@ namespace PerfTap.Interop
 					{
 						this._consumerPathToHandleAndInstanceMap.Add(validPath.ToLower(CultureInfo.InvariantCulture), instance);
 					}
+
+					//new PerformanceCounterPermission(PerformanceCounterPermissionAccess.Read, pCounterPathElements.MachineName.TrimStart('\\'), pCounterPathElements.ObjectName).Demand();
 				}
 			}
 		}
@@ -294,23 +304,8 @@ namespace PerfTap.Interop
 			throw new Exception(string.Format(CultureInfo.CurrentCulture, GetEventResources.CounterPathTranslationFailed, returnCode));
 		}
 
-		private void OpenQuery()
-		{
-			uint returnCode;
-			if (!_isQueryOpen.IsValueCreated)
-			{
-				returnCode = Apis.PdhOpenQueryH(this._safeDataSourceHandle, IntPtr.Zero, out this._safeQueryHandle);
-				if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
-				{
-					throw BuildException(returnCode);
-				}
-			}
-		}
-
 		public PerformanceCounterSampleSet ReadNextSet()
 		{
-			OpenQuery();
-
 			long fileTimeStamp = 0;
 			uint returnCode = this._isPreVista ? Apis.PdhCollectQueryData(this._safeQueryHandle)
 				: Apis.PdhCollectQueryDataWithTime(this._safeQueryHandle, ref fileTimeStamp);
@@ -319,7 +314,7 @@ namespace PerfTap.Interop
 			{
 				return null;
 			}
-			if ((returnCode != PdhResults.PDH_CSTATUS_VALID_DATA) && (returnCode != PdhResults.PDH_NO_DATA))
+			if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
 			{
 				//this makes sure next call to ReadNextSet doesn't examine the data, and just returns null
 				this._isLastSampleBad = true;
