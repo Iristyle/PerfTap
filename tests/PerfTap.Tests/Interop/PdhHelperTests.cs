@@ -48,5 +48,17 @@ namespace PerfTap.Interop.Tests
 				Assert.True(counters.CounterSamples.Count >= 6);
 			}
 		}
+
+		[Fact]
+		public void ReadNextSet_DefaultCounters_DataHasApproximatelyCorrectTimestamps()
+		{
+			using (var pdhHelper = new PdhHelper(PerfmonCounterReader.DefaultCounters))
+			{
+				DateTime now = DateTime.Now;
+				var counters = pdhHelper.ReadNextSet();
+				Assert.True(counters.CounterSamples.All(sample => 
+					Math.Abs((sample.Timestamp - now).TotalSeconds) <= 4));
+			}
+		}
 	}
 }
