@@ -72,6 +72,7 @@
     <Compile Include="Interop\PdhSafeQueryHandle.cs" />
     <Compile Include="Interop\PDH_COUNTER_PATH_ELEMENTS.cs" />
     <Compile Include="Interop\Win32Results.cs" />
+    <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="MonitoringTaskFactory.cs" />
     <Compile Include="Net\PacketBuilder.cs" />
     <Compile Include="Net\PoolAwareSocketAsyncEventArgs.cs" />

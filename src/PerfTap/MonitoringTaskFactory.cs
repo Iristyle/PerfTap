@@ -13,6 +13,7 @@ namespace PerfTap
 	using System.Threading.Tasks;
 	using PerfTap.Configuration;
 	using PerfTap.Counter;
+	using PerfTap.Linq;
 	using PerfTap.Net;
 
 	/// <summary>
@@ -49,11 +50,11 @@ namespace PerfTap
 				var reader = new PerfmonCounterReader();
 				using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
 				{
-					foreach (var metric in reader.StreamCounterSamples(_counterPaths, _counterConfig.SampleInterval, cancellationToken)
-						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key)))
+					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterConfig.SampleInterval, cancellationToken)
+						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key))
+						.Chunk(10))
 					{
-						//TODO: one metric at a time is presumably inefficient
-						messenger.SendMetrics(new[] { metric });
+						messenger.SendMetrics(metricBatch);
 					}
 				}
 			}, cancellationToken);
@@ -64,12 +65,15 @@ namespace PerfTap
 			return new Task(() => 
 				{
 					var reader = new PerfmonCounterReader();
-					var metrics = reader.GetCounterSamples(_counterPaths, _counterConfig.SampleInterval, maximumSamples, cancellationToken)
-						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key));
 
 					using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
 					{
-						messenger.SendMetrics(metrics);
+						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterConfig.SampleInterval, maximumSamples, cancellationToken)
+							.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key))
+							.Chunk(10))
+						{
+							messenger.SendMetrics(metricBatch);
+						}
 					}
 				}, cancellationToken);
 			/*
