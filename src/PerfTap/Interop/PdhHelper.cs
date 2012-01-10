@@ -338,17 +338,19 @@ namespace PerfTap.Interop
 				CounterInfo info = PdhHelper.GetCounterInfo(counterHandle);
 
 				var sample = GetRawCounterSample(counterHandle, key, info, now);
-				var performanceSample = (null != sample.PerformanceCounterSample) ? sample.PerformanceCounterSample :
-					GetFormattedCounterSample(counterHandle, key, info, sample.RawCounter);
+				var performanceSample = sample.PerformanceCounterSample ?? GetFormattedCounterSample(counterHandle, key, info, sample.RawCounter);
 
 				if (!this._ignoreBadStatusCodes && (performanceSample.Status != 0))
 				{
 					throw BuildException(performanceSample.Status);
 				}
-				if (performanceSample.Status == 0)
+
+				if (performanceSample.Status != 0)
 				{
-					counterSamples[samplesRead++] = performanceSample;
+					_log.Info(() => string.Format("Status {0:x} ignored for counter {1}", performanceSample.Status, key));
+					continue;
 				}
+				counterSamples[samplesRead++] = performanceSample;
 			}
 
 			this._isLastSampleBad = false;
