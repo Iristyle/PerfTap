@@ -6,6 +6,8 @@ namespace PerfTap.Interop
 	using System.Globalization;
 	using System.Linq;
 	using System.Runtime.InteropServices;
+	using System.Threading;
+	using System.Timers;
 	using Microsoft.Win32;
 	using NLog;
 	using PerfTap.Counter;
@@ -33,6 +35,9 @@ namespace PerfTap.Interop
 		private readonly bool _isPreVista;
 		private bool _isLastSampleBad;
 		private readonly bool _ignoreBadStatusCodes = true;
+		private readonly ManualResetEventSlim _firstRead = new ManualResetEventSlim(false);
+		private readonly System.Timers.Timer _backgroundTimer = new System.Timers.Timer(1000);
+		private readonly ElapsedEventHandler _backgroundTask;
 
 		public PdhHelper(IEnumerable<string> counters)
 			: this(Environment.OSVersion.Version.Major < 6, new string[0], counters, true)
@@ -47,6 +52,8 @@ namespace PerfTap.Interop
 		{
 			this._isPreVista = isPreVista;
 			this._ignoreBadStatusCodes = ignoreBadStatusCodes;
+			this._backgroundTask = (state, eventArgs) => { _firstRead.Set(); _backgroundTimer.Stop(); _backgroundTimer.Elapsed -= _backgroundTask; };
+			this._backgroundTimer.Elapsed += this._backgroundTask;
 			ConnectToDataSource();
 
 			List<string> validPaths = ParsePaths(counters.PrefixWithComputerNames(computerNames)).ToList();
@@ -56,6 +63,7 @@ namespace PerfTap.Interop
 
 			OpenQuery();
 			AddCounters(validPaths);
+			PerformFirstRead();
 		}
 
 		private void OpenQuery()
@@ -67,6 +75,20 @@ namespace PerfTap.Interop
 			}
 		}
 
+		private void PerformFirstRead()
+		{
+			long fileTimeStamp = 0;
+			if (this._isPreVista)
+			{
+				Apis.PdhCollectQueryData(this._safeQueryHandle);
+			}
+			else
+			{
+				Apis.PdhCollectQueryDataWithTime(this._safeQueryHandle, ref fileTimeStamp);
+			}
+			//a sneaky way of not blocking until we actually call ReadNext
+			this._backgroundTimer.Start();
+		}
 		private IEnumerable<string> ParsePaths(IEnumerable<string> allCounterPaths)
 		{
 			foreach (string counterPath in allCounterPaths)
@@ -124,8 +146,6 @@ namespace PerfTap.Interop
 					{
 						this._consumerPathToHandleAndInstanceMap.Add(validPath.ToLower(CultureInfo.InvariantCulture), instance);
 					}
-
-					//new PerformanceCounterPermission(PerformanceCounterPermissionAccess.Read, pCounterPathElements.MachineName.TrimStart('\\'), pCounterPathElements.ObjectName).Demand();
 				}
 			}
 		}
@@ -150,6 +170,10 @@ namespace PerfTap.Interop
 			if ((this._safeQueryHandle != null) && !this._safeQueryHandle.IsInvalid)
 			{
 				this._safeQueryHandle.Dispose();
+			}
+			if (this._backgroundTimer != null)
+			{
+				this._backgroundTimer.Dispose();
 			}
 			GC.SuppressFinalize(this);
 		}
@@ -306,6 +330,7 @@ namespace PerfTap.Interop
 
 		public PerformanceCounterSampleSet ReadNextSet()
 		{
+			this._firstRead.Wait();
 			long fileTimeStamp = 0;
 			uint returnCode = this._isPreVista ? Apis.PdhCollectQueryData(this._safeQueryHandle)
 				: Apis.PdhCollectQueryDataWithTime(this._safeQueryHandle, ref fileTimeStamp);
