@@ -161,8 +161,6 @@ namespace PerfTap.Interop
 
 			if (Marshal.GetLastWin32Error() == ERROR_NOT_ALL_ASSIGNED)
 			{
-				//TODO: do we throw here?
-				//printf("The token does not have the specified privilege. \n");
 				throw BuildException(ERROR_NOT_ALL_ASSIGNED);
 			}
 		}
