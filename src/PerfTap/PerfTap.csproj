@@ -46,10 +46,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\CounterConfiguration.cs" />
-    <Compile Include="Configuration\ICounterConfiguration.cs" />
-    <Compile Include="Configuration\IReportingConfiguration.cs" />
-    <Compile Include="Configuration\ReportingConfiguration.cs" />
+    <Compile Include="Configuration\CounterSamplingConfiguration.cs" />
+    <Compile Include="Configuration\CounterDefinitionsFilePath.cs" />
+    <Compile Include="Configuration\CounterDefinitionsFilePathConfigurationCollection.cs" />
+    <Compile Include="Configuration\CounterName.cs" />
+    <Compile Include="Configuration\CounterNameConfigurationCollection.cs" />
+    <Compile Include="Configuration\ICounterSamplingConfiguration.cs" />
+    <Compile Include="Configuration\ICounterDefinitionsFilePath.cs" />
+    <Compile Include="Configuration\ICounterName.cs" />
+    <Compile Include="Configuration\IMetricPublishingConfiguration.cs" />
+    <Compile Include="Configuration\MetricPublishingConfiguration.cs" />
     <Compile Include="CounterFileParser.cs" />
     <Compile Include="Counter\CounterPathBuilder.cs" />
     <Compile Include="Interop\CounterInfo.cs" />

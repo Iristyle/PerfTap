@@ -15,7 +15,6 @@ namespace PerfTap.Tests
 	using System.Threading.Tasks;
 	using PerfTap.Configuration;
 	using Xunit;
-	using PerfTap.Interop;
 
 	/// <summary>
 	/// TODO: Update summary.
@@ -23,27 +22,27 @@ namespace PerfTap.Tests
 	public class MonitoringTaskFactoryTest
 	{
 		private int port;
-		ICounterConfiguration counterConfig = new Configuration.CounterConfiguration()
+		ICounterSamplingConfiguration counterConfig = new Configuration.CounterSamplingConfiguration()
 		{
-			CounterDefinitions = new List<string>() { @"\network interface(*)\bytes total/sec", 
+			CounterDefinitions = new CounterNameConfigurationCollection(new [] {@"\network interface(*)\bytes total/sec", 
 				@"\processor(_total)\% processor time", 
 				@"\memory\% committed bytes in use", 
 				@"\memory\cache faults/sec", 
 				@"\physicaldisk(_total)\% disk time", 
-				@"\physicaldisk(_total)\current disk queue length" },
+				@"\physicaldisk(_total)\current disk queue length" }),
 			SampleInterval = TimeSpan.FromSeconds(1)
 		};
 
-		IReportingConfiguration reportingConfig = new Configuration.ReportingConfiguration()
+		IMetricPublishingConfiguration reportingConfig = new Configuration.MetricPublishingConfiguration()
 		{
-			Key = "test",
+			PrefixKey = "test",
 			Server = "localhost"
 		};
 
 		public MonitoringTaskFactoryTest()
 		{
 			port = new Random(DateTime.Now.Second).Next(8500, 10000);
-			((ReportingConfiguration)reportingConfig).Port = port; //bad bad
+			((MetricPublishingConfiguration)reportingConfig).Port = port; //bad bad
 		}
 
 		private Task<byte[]> StartListeningForBytes()

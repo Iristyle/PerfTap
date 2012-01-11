@@ -13,18 +13,6 @@
 	static class Program
 	{
 		private static readonly Logger log = LogManager.GetCurrentClassLogger();
-		//TODO: replace with code that reads from Xml config
-		private static ICounterConfiguration counterConfig = new CounterConfiguration()
-		{
-			SampleInterval = TimeSpan.FromSeconds(2),
-			DefinitionPaths = new List<string>() { "CounterDefinitions\\system.counters" }
-		};
-		private static IReportingConfiguration reportingConfig = new ReportingConfiguration()
-		{
-			Key = "Test",
-			Server = "metrics.eastpointsystems.com",
-			Port = 8125
-		};
 
 		/// <summary>
 		/// The main entry point for the application.
@@ -34,12 +22,13 @@
 			try
 			{
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
 #if (DEBUG)
 				// Debug code: this allows the process to run as a non-service.
 				// It will kick off the service start point, but never kill it.
 				// Shut down the debugger to exit
 				//TODO: this factory needs to be registered in a container to make this more general purpose 
-				using (var service = new TaskService(cancellation => new MonitoringTaskFactory(counterConfig, reportingConfig).CreateContinuousTask(cancellation)))
+				using (var service = new TaskService(cancellation => new MonitoringTaskFactory(CounterSamplingConfiguration.FromConfig(), MetricPublishingConfiguration.FromConfig()).CreateContinuousTask(cancellation)))
 				{
 					// Put a breakpoint in OnStart to catch it
 					typeof(CustomServiceBase).GetMethod("OnStart", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(service, new object[] { null });

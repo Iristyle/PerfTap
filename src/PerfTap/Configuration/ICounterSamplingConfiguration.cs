@@ -5,10 +5,10 @@ namespace PerfTap.Configuration
 	using System.Linq;
 	using System.Collections.ObjectModel;
 
-	public interface ICounterConfiguration
+	public interface ICounterSamplingConfiguration
 	{
-		ReadOnlyCollection<string> DefinitionPaths { get; }
-		ReadOnlyCollection<string> CounterDefinitions { get; } 
+		ReadOnlyCollection<ICounterDefinitionsFilePath> DefinitionFilePaths { get; }
+		ReadOnlyCollection<ICounterName> CounterNames { get; } 
 		TimeSpan SampleInterval { get; }
 	}
 }

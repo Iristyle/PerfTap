@@ -4,10 +4,10 @@ namespace PerfTap.Configuration
 	using System.Collections.Generic;
 	using System.Linq;
 
-	public interface IReportingConfiguration
+	public interface IMetricPublishingConfiguration
 	{
 		string Server { get; }
 		int Port { get; }
-		string Key { get; }
+		string PrefixKey { get; }
 	}
 }

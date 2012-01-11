@@ -21,26 +21,26 @@ namespace PerfTap
 	/// </summary>
 	public class MonitoringTaskFactory
 	{
-		private readonly ICounterConfiguration _counterConfig;
-		private readonly IReportingConfiguration _reportingConfig;
+		private readonly ICounterSamplingConfiguration _counterSamplingConfig;
+		private readonly IMetricPublishingConfiguration _metricPublishingConfig;
 		private readonly List<string> _counterPaths;
 
 		/// <summary>
 		/// Initializes a new instance of the MonitoringTaskFactory class.
 		/// </summary>
-		/// <param name="counterConfig"></param>
-		public MonitoringTaskFactory(ICounterConfiguration counterConfig, IReportingConfiguration reportingConfig)
+		/// <param name="counterSamplingConfig"></param>
+		public MonitoringTaskFactory(ICounterSamplingConfiguration counterSamplingConfig, IMetricPublishingConfiguration metricPublishingConfig)
 		{
-			if (null == counterConfig) { throw new ArgumentNullException("counterConfig"); }
-			if (null == reportingConfig) { throw new ArgumentNullException("reportingConfig"); }
+			if (null == counterSamplingConfig) { throw new ArgumentNullException("counterSamplingConfig"); }
+			if (null == metricPublishingConfig) { throw new ArgumentNullException("metricPublishingConfig"); }
 
-			_counterConfig = counterConfig;
-			_counterPaths = counterConfig.DefinitionPaths
-				.SelectMany(path => CounterFileParser.ReadCountersFromFile(path))
-				.Union(_counterConfig.CounterDefinitions)
+			_counterSamplingConfig = counterSamplingConfig;
+			_counterPaths = counterSamplingConfig.DefinitionFilePaths
+				.SelectMany(path => CounterFileParser.ReadCountersFromFile(path.Path))
+				.Union(_counterSamplingConfig.CounterNames.Select(name => name.Name))
 				.Distinct(StringComparer.CurrentCultureIgnoreCase)
 				.ToList();
-			_reportingConfig = reportingConfig;
+			_metricPublishingConfig = metricPublishingConfig;
 		}
 
 		public Task CreateContinuousTask(CancellationToken cancellationToken)
@@ -48,10 +48,10 @@ namespace PerfTap
 			return new Task(() =>
 			{
 				var reader = new PerfmonCounterReader();
-				using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
+				using (var messenger = new UdpMessenger(_metricPublishingConfig.Server, _metricPublishingConfig.Port))
 				{
-					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterConfig.SampleInterval, cancellationToken)
-						.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key))
+					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, cancellationToken)
+						.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))
 						.Chunk(10))
 					{
 						messenger.SendMetrics(metricBatch);
@@ -66,26 +66,16 @@ namespace PerfTap
 				{
 					var reader = new PerfmonCounterReader();
 
-					using (var messenger = new UdpMessenger(_reportingConfig.Server, _reportingConfig.Port))
+					using (var messenger = new UdpMessenger(_metricPublishingConfig.Server, _metricPublishingConfig.Port))
 					{
-						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterConfig.SampleInterval, maximumSamples, cancellationToken)
-							.SelectMany(set => set.CounterSamples.ToGraphiteString(_reportingConfig.Key))
+						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, maximumSamples, cancellationToken)
+							.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))
 							.Chunk(10))
 						{
 							messenger.SendMetrics(metricBatch);
 						}
 					}
 				}, cancellationToken);
-			/*
-			
-		#when querying at a 10 second or less interval, batch into at least 10-second groups to cut down on cpu usage
-		$maxSamples = 1
-		if ($SecondFrequency -lt 10)
-		{
-			#TODO: should we prevent the timer from overlapping?
-			$maxSamples = [Math]::Round(10 / $SecondFrequency)
-		}
-		*/
 		}
 	}
 }
