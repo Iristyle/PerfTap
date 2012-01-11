@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CounterFileParserTest.cs" />
+    <Compile Include="Counter\PerfmonCounterReaderTests.cs" />
     <Compile Include="Interop\PdhHelperTests.cs" />
     <Compile Include="Linq\LinqExtensionsTests.cs" />
     <Compile Include="MonitoringTaskFactoryTest.cs" />
