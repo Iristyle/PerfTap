@@ -6,9 +6,9 @@
 	using System.Threading;
 	using NLog;
 	using PerfTap.Configuration;
+	using PerfTap.Interop;
 	using ServiceChassis;
 	using ServiceChassis.Configuration;
-	using PerfTap.Interop;
 
 	static class Program
 	{
@@ -34,7 +34,6 @@
 			try
 			{
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-				PerfmonPrivileges.Set();
 #if (DEBUG)
 				// Debug code: this allows the process to run as a non-service.
 				// It will kick off the service start point, but never kill it.

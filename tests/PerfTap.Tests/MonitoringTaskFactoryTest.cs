@@ -44,7 +44,6 @@ namespace PerfTap.Tests
 		{
 			port = new Random(DateTime.Now.Second).Next(8500, 10000);
 			((ReportingConfiguration)reportingConfig).Port = port; //bad bad
-			PerfmonPrivileges.Set();
 		}
 
 		private Task<byte[]> StartListeningForBytes()
