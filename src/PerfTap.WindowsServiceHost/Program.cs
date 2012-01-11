@@ -3,13 +3,14 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Reflection;
+	using System.ServiceProcess;
 	using System.Threading;
 	using NLog;
 	using PerfTap.Configuration;
 	using PerfTap.Interop;
 	using ServiceChassis;
 	using ServiceChassis.Configuration;
-
+	
 	static class Program
 	{
 		private static readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -36,7 +37,7 @@
 					Thread.Sleep(Timeout.Infinite);
 				}
 #else
-                    ServiceBase.Run(new[] { new TaskService(cancellation => new MonitoringTaskFactory(counterConfig, reportingConfig).CreateContinuousTask(cancellation)) });
+				ServiceBase.Run(new[] { new TaskService(cancellation => new MonitoringTaskFactory(CounterSamplingConfiguration.FromConfig(), MetricPublishingConfiguration.FromConfig()).CreateContinuousTask(cancellation)) });
 #endif
 			}
 			catch (Exception ex)
