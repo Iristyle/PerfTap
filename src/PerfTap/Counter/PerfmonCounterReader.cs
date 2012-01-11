@@ -8,7 +8,6 @@ namespace PerfTap.Counter
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Globalization;
 	using System.Linq;
 	using System.Threading;
 	using PerfTap.Interop;
@@ -81,8 +80,6 @@ namespace PerfTap.Counter
 					{
 						yield return set;
 					}
-					//TODO: log a null set like this?
-					//PdhHelper.BuildException(returnCode, false);
 					samplesRead++;
 				}
 				while (((maxSamples == INFINITIY) || (samplesRead < maxSamples)) && !token.WaitHandle.WaitOne(sampleInterval, true));
