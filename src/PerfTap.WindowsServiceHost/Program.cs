@@ -2,7 +2,9 @@
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Reflection;
 	using System.ServiceProcess;
+	using System.Threading;
 	using NLog;
 	using PerfTap.Configuration;
 	using ServiceChassis;
