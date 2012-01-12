@@ -51,7 +51,7 @@ namespace ServiceChassis
 			}
 			catch (Exception ex)
 			{
-				_log.Error("Unspecified Error While executing task", ex);
+				_log.ErrorException("Unspecified Error While executing task", ex);
 
 				//ReportProgress(100, new TaskProgress(TaskStatus.Error,
 				//	String.Format("Unexpected exception synchronizing data - {0}{1}", Environment.NewLine, ex)));

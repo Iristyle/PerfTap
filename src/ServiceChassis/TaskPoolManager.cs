@@ -27,7 +27,7 @@ namespace ServiceChassis
 			{
 				//this can be called when our background thread craps out and dies ;0
 				if (!e.Cancelled && null != e.Error)
-					log.Error("Unhandled Exception caused in backgroundIndexer_DoWork()", e.Error);
+					_log.ErrorException("Unhandled Exception caused in backgroundIndexer_DoWork()", e.Error);
 			};
 			*/
 		}

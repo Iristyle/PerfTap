@@ -44,7 +44,7 @@
 			}
 			catch (Exception ex)
 			{
-				_log.Fatal(String.Format("Service {0} - Unexpected Error - Failed to start", ServiceName), ex);
+				_log.FatalException(String.Format("Service {0} - Unexpected Error - Failed to start", ServiceName), ex);
 
 				if (null != _pollTimer) _pollTimer.Stop();
 				if (null != _taskPoolManager)
@@ -69,7 +69,7 @@
 			}
 			catch (Exception ex)
 			{
-				_log.Error(String.Format("Service {0} - Unexpected Error - Failed to Stop", ServiceName), ex);
+				_log.ErrorException(String.Format("Service {0} - Unexpected Error - Failed to Stop", ServiceName), ex);
 			}
 		}
 
@@ -84,7 +84,7 @@
 			}
 			catch (Exception ex)
 			{
-				_log.Error(String.Format("Service {0} - Unexpected Error - Failed to Pause", ServiceName), ex);
+				_log.ErrorException(String.Format("Service {0} - Unexpected Error - Failed to Pause", ServiceName), ex);
 			}
 		}
 
@@ -123,7 +123,7 @@
 			}
 			catch (Exception ex)
 			{
-				_log.Error(String.Format("Service {0} - Unexpected Error - couldn't start task", ServiceName), ex);
+				_log.ErrorException(String.Format("Service {0} - Unexpected Error - couldn't start task", ServiceName), ex);
 			}
 		}
 
@@ -131,7 +131,7 @@
 		void synchronizer_ProgressChanged(object sender, TaskProgressChangedEventArgs e)
 		{
 			if (e.Details.Status == TaskStatus.Error)
-				_log.Error("Synchronization Progress Update - Unexpected Error: {0}", e.Details.Message);
+				_log.ErrorException("Synchronization Progress Update - Unexpected Error: {0}", e.Details.Message);
 			else
 			{
 				_log.Debug("Synchronization Progress Update {0}% - Status {1}: {2}", e.ProgressPercentage, e.Details.Status, e.Details.Message);

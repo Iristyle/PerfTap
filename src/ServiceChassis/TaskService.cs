@@ -33,7 +33,7 @@ namespace ServiceChassis
 			}
 			catch (Exception ex)
 			{
-				_log.Fatal(String.Format("Service {0} - Unexpected Error - Failed to start", ServiceName), ex);
+				_log.FatalException(String.Format("Service {0} - Unexpected Error - Failed to start", ServiceName), ex);
 
 				if (null != _currentTask)
 				{
