@@ -52,12 +52,12 @@ using Xunit;
 				yield return new object[] { 
 					null,
 					new PerformanceCounterSample(@"\\machine-name\processor(0)\% processor time", "0", 1.6925116, 3559922343750, 129708662189268994, 1, PerformanceCounterType.Timer100NsInverse, 0, 10000000, now, (ulong)now.ToFileTime(), 0), 
-					String.Format(@"machine-name.processor_0_.pct_processor_time:1.693|kv|@{0}", now.AsUnixTime()) };
+					String.Format(@"machine-name.processor.0.pct_processor_time:1.693|kv|@{0}", now.AsUnixTime()) };
 
 				yield return new object[] { 
 					"foo",
 					new PerformanceCounterSample(@"\\machine-name\processor(_total)\% processor time", "_total", 1.6925116, 3559922343750, 129708662189268994, 1, PerformanceCounterType.Timer100NsInverse, 0, 10000000, now, (ulong)now.ToFileTime(), 0), 
-					String.Format(@"foo.machine-name.processor__total_.pct_processor_time:1.693|kv|@{0}", now.AsUnixTime()) };
+					String.Format(@"foo.machine-name.processor._total.pct_processor_time:1.693|kv|@{0}", now.AsUnixTime()) };
 
 				yield return new object[] { 
 					"junk",
@@ -67,7 +67,7 @@ using Xunit;
 				yield return new object[] { 
 					"super-key",
 					new PerformanceCounterSample(@"\\machine-name\physicaldisk(_total)\avg. disk sec/write", "_total", 0.000599983144971405, 840816148, 181869, 1, PerformanceCounterType.AverageTimer32, 3, 3579545, now, (ulong)now.ToFileTime(), 0), 
-					String.Format(@"super-key.machine-name.physicaldisk__total_.avg__disk_sec_write:0.001|ms", now.AsUnixTime()) };
+					String.Format(@"super-key.machine-name.physicaldisk._total.avg__disk_sec_write:0.001|ms", now.AsUnixTime()) };
 			}
 		}
 
