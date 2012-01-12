@@ -27,7 +27,7 @@ namespace PerfTap.Configuration
 		}
 
 		[ConfigurationProperty("prefixKey", DefaultValue = "", IsRequired = false)]
-		[RegexStringValidator(@"^[^\s;:/\.\(\)\\#%\$\^]+$|^$")]
+		[RegexStringValidator(@"^[^!\s;:/\.\(\)\\#%\$\^]+$|^$")]
 		public string PrefixKey 
 		{
 			get { return (string)this["prefixKey"]; }

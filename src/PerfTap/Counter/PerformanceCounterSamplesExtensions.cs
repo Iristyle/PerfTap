@@ -19,7 +19,7 @@ namespace PerfTap
 	/// </summary>
 	public static class PerformanceCounterSamplesExtensions
 	{
-		private static Regex _validKey = new Regex(@"^[^\s;:/\.\(\)\\#%\$\^]+$", RegexOptions.Compiled);
+		private static Regex _validKey = new Regex(@"^[^!\s;:/\.\(\)\\#%\$\^]+$", RegexOptions.Compiled);
 		private const string _keyValue = "kv",
 			_timer = "ms",
 			_performanceCounter = "c",
@@ -86,9 +86,9 @@ namespace PerfTap
 				//https://github.com/kiip/statsite
 				//key:value|type[|@flag]
 				metric.Remove(0, metric.Length);	//clear the buffer
-				metric.Append(counter.Path);
+				metric.Append(counter.Path.ToLower());
 
-				metric.Replace("\\", string.Empty);
+				metric.Replace(@"\\", string.Empty);
 
 				for (int i = 0; i < metric.Length; ++i)
 				{
@@ -100,7 +100,7 @@ namespace PerfTap
 				metric.Replace("%", "pct");
 				if (!string.IsNullOrEmpty(prefix)) { metric.Insert(0, prefix); }
 
-				metric.AppendFormat(":{0}|{1}", counter.CookedValue, type);
+				metric.AppendFormat(":{0:0.###}|{1}", counter.CookedValue, type);
 
 				if (type == _keyValue)
 				{
