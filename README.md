@@ -31,11 +31,12 @@ At a PowerShell admin prompt, installation is as easy as this (slightly long) on
 Since PowerShell binds parameters passed in -ArgumentList by order, we can circumvent this by passing a hash object as the lone parameter, and an extra function to substitute in defaults.
 
 For hash values not supplied the following defaults are used. Server is required.
-Port - 8125
-Key - (empty)
-SampleInterval - 00:00:05
-DefinitionPaths - CounterDefinitions\system.counters
-CounterNames - (empty)
+
+* Port - 8125
+* Key - (empty)
+* SampleInterval - 00:00:05
+* DefinitionPaths - CounterDefinitions\system.counters
+* CounterNames - (empty)
 
 ### Simple Remote Installation via WinRM
 
