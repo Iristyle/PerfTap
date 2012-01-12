@@ -9,11 +9,12 @@ namespace ServiceChassis
 	public abstract class CustomServiceBase : ServiceBase
 	{
 		protected static readonly Logger _log = LogManager.GetCurrentClassLogger();
-
+		private System.ComponentModel.IContainer components = null;
 		private CustomServiceBase() {}
 
 		protected CustomServiceBase(string serviceName)
 		{
+			this.AutoLog = true;
 			this.ServiceName = serviceName;
 		}
 
