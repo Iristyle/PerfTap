@@ -24,10 +24,24 @@ Sorry Mono, this is the Win32 only club -- besides, Linux distros already have b
 
 ### Local Installation Script
 
+At a PowerShell admin prompt, installation is as easy as this (slightly long) one-liner
 
+    Invoke-Command -ScriptBlock (new-object Net.WebClient).DownloadString("https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1") -ArgumentList @{Server='server.addr'; Port=8125; Key='Key'; SampleInterval='00:00:01'; DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters'; CounterNames='\Processor(*)\% Processor Time';}
 
+Since PowerShell binds parameters passed in -ArgumentList by order, we can circumvent this by passing a hash object as the lone parameter, and an extra function to substitute in defaults.
+
+For hash values not supplied the following defaults are used. Server is required.
+Port - 8125
+Key - (empty)
+SampleInterval - 00:00:05
+DefinitionPaths - CounterDefinitions\system.counters
+CounterNames - (empty)
 
 ### Simple Remote Installation via WinRM
+
+Alternatively, a WinRM based installation method is supported, so that many machines may be installed to at once.
+
+    TODO: 
 
 
 
