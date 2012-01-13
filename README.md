@@ -19,16 +19,37 @@ Designed for compatibility with a StatsD compatible listener, such as:
 * .NET Framework 4+
 * Windows
 * Admin rights for installing services (the service is setup to run as NETWORK SERVICE)
+* Powershell v2 required to user the one-line installer
 
 Sorry Mono, this is the Win32 only club -- besides, Linux distros already have better tools for this!
 
 ### Local Installation Script
 
-At a PowerShell admin prompt, installation is as easy as this (slightly long) one-liner
+At a PowerShell admin prompt, installation is as easy as this (long) one-liner, which will prompt for the server name and assume all other defaults.
 
-    Invoke-Command -ScriptBlock $executioncontext.InvokeCommand.NewScriptBlock((new-object Net.WebClient).DownloadString("https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1")) -ArgumentList @{Server='server.addr'; Port=8125; Key='Key'; SampleInterval='00:00:01'; DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters'; CounterNames='\Processor(*)\% Processor Time';}
+    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1'))
 
-Since PowerShell binds parameters passed in -ArgumentList by order, we can circumvent this by passing a hash object as the lone parameter, and an extra function to substitute in defaults.
+Alternatively, specify any or all of the configuration options.
+
+    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1')) -Args @{Server='server.addr';Port=8125;Key='Key';SampleInterval='00:00:01';DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters';CounterNames='\Processor(*)\% Processor Time';}
+
+Or if readability is your thing:
+
+    $config = @{
+        Server = 'server.addr'; 
+        Port = 8125; 
+        Key = 'Key'; 
+        SampleInterval = '00:00:01'; 
+        DefinitionPaths = 'CounterDefinitions\system.counters','CounterDefinitions\webservice.counters'; 
+        CounterNames = '\Processor(*)\% Processor Time';
+    }
+    $args = @{
+        ScriptBlock = $executioncontext.InvokeCommand.NewScriptBlock((new-object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1'));
+        ArgumentList = $config
+    }
+    Invoke-Command @args
+
+Since PowerShell binds parameters passed in -ArgumentList by order, a single hash object is specified as the lone parameter.
 
 For hash values not supplied the following defaults are used. Server is required.
 
@@ -146,6 +167,7 @@ As it turned out, the PowerShell code does hide quite a bit of useful heavy lift
 * Configuration options for packet batching
 * Better configuration file error checking
 * Potentially break out the ServiceChassis piece to a separate NuGet package - or integrate with what the [TopShelf](http://topshelf-project.com/) guys have done.
+* Provide uninstall and upgrade (that won't modify config file) option through script
 
 ## Contributing
 
