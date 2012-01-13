@@ -67,7 +67,12 @@ using Xunit;
 				yield return new object[] { 
 					"super-key",
 					new PerformanceCounterSample(@"\\machine-name\physicaldisk(_total)\avg. disk sec/write", "_total", 0.000599983144971405, 840816148, 181869, 1, PerformanceCounterType.AverageTimer32, 3, 3579545, now, (ulong)now.ToFileTime(), 0), 
-					String.Format(@"super-key.machine-name.physicaldisk._total.avg__disk_sec_write:0.001|ms", now.AsUnixTime()) };
+					String.Format(@"super-key.machine-name.physicaldisk._total.avg__disk_sec_write:0.001|ms") };
+
+				yield return new object[] {
+					"foo",
+					new PerformanceCounterSample(@"\\machine-name\network interface(isatap.localdomain)\bytes total/sec", "isatap.localdomain", 0, 0, 345497015725, 1, PerformanceCounterType.RateOfCountsPerSecond64, 4294967292, 3579545, now, (ulong)now.ToFileTime(), 0),
+					String.Format(@"foo.machine-name.network_interface.isatap_localdomain.bytes_total_sec:0|kv|@{0}", now.AsUnixTime()) };
 			}
 		}
 

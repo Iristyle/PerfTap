@@ -88,17 +88,17 @@ namespace PerfTap
 				metric.Remove(0, metric.Length);	//clear the buffer
 				metric.Append(counter.Path.ToLower());
 
-				metric.Replace(@"\\", string.Empty);				
-
-				for (int i = 0; i < metric.Length; ++i)
-				{
-					if (_badChars.Contains(metric[i])) { metric[i] = '_'; }
-				}
+				metric.Replace(@"\\", string.Empty);
 
 				if (null != counter.InstanceName)
 				{
 					string instanceName = counter.InstanceName.ToLower();
-					metric.Replace(String.Format(@"_{0}_\", instanceName), String.Format(@".{0}.", instanceName));
+					metric.Replace(String.Format(@"({0})\", instanceName), String.Format(@"\{0}\", instanceName));
+				}
+
+				for (int i = 0; i < metric.Length; ++i)
+				{
+					if (_badChars.Contains(metric[i])) { metric[i] = '_'; }
 				}
 
 				metric.Replace('\\', '.');
