@@ -203,7 +203,10 @@ For more information execute:
     }
 	else
 	{
-		Stop-Service PerfTap
+		if ((Get-Service PerfTap -ErrorAction SilentlyContinue) -ne $null)
+		{
+			Stop-Service PerfTap
+		}
 		Extract-Zip
 		Run-ServiceInstaller
 		Modify-ConfigFile -Key $Key -Port $Port -SampleInterval $SampleInterval -Server $Server `
