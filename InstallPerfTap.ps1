@@ -1,7 +1,7 @@
 ﻿param
 (
-	[Parameter(Mandatory=$true)]
-	[Hashtable] $settings
+	[Parameter()]
+	[Hashtable] $settings = @{}
 )
 
 Set-StrictMode -version Latest
