@@ -61,33 +61,6 @@ namespace PerfTap {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cooked Values.
-        /// </summary>
-        internal static string CookedValues {
-            get {
-                return ResourceManager.GetString("CookedValues", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot import more than one comma-separated (.csv) or tab-separated (.tsv) performance counter file  in each command..
-        /// </summary>
-        internal static string Counter1FileLimit {
-            get {
-                return ResourceManager.GetString("Counter1FileLimit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot import more than 32 .blg counter log files in each command..
-        /// </summary>
-        internal static string Counter32FileLimit {
-            get {
-                return ResourceManager.GetString("Counter32FileLimit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Internal performance counter API call failed. Error: {0:x8}..
         /// </summary>
         internal static string CounterApiError {
@@ -97,101 +70,11 @@ namespace PerfTap {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Circular parameter will be ignored unless the MaxSize parameter is also specified..
-        /// </summary>
-        internal static string CounterCircularNoMaxSize {
-            get {
-                return ResourceManager.GetString("CounterCircularNoMaxSize", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Continuous parameter and the MaxSamples parameter cannot be used in the same command..
-        /// </summary>
-        internal static string CounterContinuousOrMaxSamples {
-            get {
-                return ResourceManager.GetString("CounterContinuousOrMaxSamples", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} performance counter cannot be exported to the {1} file because it was not part of the first sample set..
-        /// </summary>
-        internal static string CounterExportSampleNotInInitialSet {
-            get {
-                return ResourceManager.GetString("CounterExportSampleNotInInitialSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} file already exists. To overwrite this file, use the Force parameter in the Export-Counter command..
-        /// </summary>
-        internal static string CounterFileExists {
-            get {
-                return ResourceManager.GetString("CounterFileExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The value of the StartTime parameter must be less than the value of the EndTime parameter..
-        /// </summary>
-        internal static string CounterInvalidDateRange {
-            get {
-                return ResourceManager.GetString("CounterInvalidDateRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} format type is not a valid format for a counter file. Possible values for the Format parameter are .blt, .csv, or .tsv..
-        /// </summary>
-        internal static string CounterInvalidFormat {
-            get {
-                return ResourceManager.GetString("CounterInvalidFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot import different types of performance log files in the same command.  Specify only one type of file in the Path parameter..
-        /// </summary>
-        internal static string CounterNoMixedLogTypes {
-            get {
-                return ResourceManager.GetString("CounterNoMixedLogTypes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} file does not have the expected file name extension. Specify only .blg, .csv, or .tsv files when you use the Path parameter..
-        /// </summary>
-        internal static string CounterNotALogFile {
-            get {
-                return ResourceManager.GetString("CounterNotALogFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} performance counter path is either not valid or it is not present in the following files: {1}..
-        /// </summary>
-        internal static string CounterPathInvalidOrNotInFile {
-            get {
-                return ResourceManager.GetString("CounterPathInvalidOrNotInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The {0} performance counter path  is not valid..
         /// </summary>
         internal static string CounterPathIsInvalid {
             get {
                 return ResourceManager.GetString("CounterPathIsInvalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No valid counter paths were found in the files..
-        /// </summary>
-        internal static string CounterPathsInFilesInvalid {
-            get {
-                return ResourceManager.GetString("CounterPathsInFilesInvalid", resourceCulture);
             }
         }
         
@@ -223,137 +106,11 @@ namespace PerfTap {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following value is not in a valid DateTime format: {0}..
-        /// </summary>
-        internal static string DateTimeExpected {
-            get {
-                return ResourceManager.GetString("DateTimeExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This Windows PowerShell snap-in contains Windows Eventing and Performance Counter cmdlets..
-        /// </summary>
-        internal static string Description {
-            get {
-                return ResourceManager.GetString("Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This cmdlet can be run only on Microsoft Windows 7 and above..
-        /// </summary>
-        internal static string ExportCtrWin7Required {
-            get {
-                return ResourceManager.GetString("ExportCtrWin7Required", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The following export destination path is ambiguous: {0}..
-        /// </summary>
-        internal static string ExportDestPathAmbiguous {
-            get {
-                return ResourceManager.GetString("ExportDestPathAmbiguous", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to create the {0} file. Verify that the path is valid..
-        /// </summary>
-        internal static string FileCreateFailed {
-            get {
-                return ResourceManager.GetString("FileCreateFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to open the {0} file for writing..
-        /// </summary>
-        internal static string FileOpenFailed {
-            get {
-                return ResourceManager.GetString("FileOpenFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This cmdlet requires Microsoft .NET Framework version 3.5 or greater..
-        /// </summary>
-        internal static string GetEventDotNet35Required {
-            get {
-                return ResourceManager.GetString("GetEventDotNet35Required", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This cmdlet can run only on Microsoft Windows Vista and later versions of Windows..
-        /// </summary>
-        internal static string GetEventVistaPlusRequired {
-            get {
-                return ResourceManager.GetString("GetEventVistaPlusRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} Context key-value is not a valid SID or NT account name..
-        /// </summary>
-        internal static string InvalidContext {
-            get {
-                return ResourceManager.GetString("InvalidContext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to InvalidPattern=The specified wildcard pattern is not valid: {0}.
         /// </summary>
         internal static string InvalidPattern {
             get {
                 return ResourceManager.GetString("InvalidPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The following value is not in a valid security identifier (SID) format: {0}. Enter a valid SID, such as S-1-5-32-544..
-        /// </summary>
-        internal static string InvalidSIDFormat {
-            get {
-                return ResourceManager.GetString("InvalidSIDFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; specified for keyword..
-        /// </summary>
-        internal static string KeywordLongExpected {
-            get {
-                return ResourceManager.GetString("KeywordLongExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not retrieve information about the {0} log. Error: {1}..
-        /// </summary>
-        internal static string LogInfoUnavailable {
-            get {
-                return ResourceManager.GetString("LogInfoUnavailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You must specify at least one Log, Provider or Path key-value pair..
-        /// </summary>
-        internal static string LogProviderOrPathNeeded {
-            get {
-                return ResourceManager.GetString("LogProviderOrPathNeeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified providers do not write events to any of the specified logs..
-        /// </summary>
-        internal static string LogsAndProvidersDontOverlap {
-            get {
-                return ResourceManager.GetString("LogsAndProvidersDontOverlap", resourceCulture);
             }
         }
         
@@ -367,15 +124,6 @@ namespace PerfTap {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot retrieve event message text..
-        /// </summary>
-        internal static string NoEventMessage {
-            get {
-                return ResourceManager.GetString("NoEventMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot find any performance counter sets on the {0} computer that match the following: {1}..
         /// </summary>
         internal static string NoMatchingCounterSetsFound {
@@ -385,147 +133,11 @@ namespace PerfTap {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot find any performance counter sets in the {0} files that match the following: {1}..
-        /// </summary>
-        internal static string NoMatchingCounterSetsInFile {
-            get {
-                return ResourceManager.GetString("NoMatchingCounterSetsInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No events were found that match the specified selection criteria..
-        /// </summary>
-        internal static string NoMatchingEventsFound {
-            get {
-                return ResourceManager.GetString("NoMatchingEventsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is not an event log on the {0} computer that matches &quot;{1}&quot;..
-        /// </summary>
-        internal static string NoMatchingLogsFound {
-            get {
-                return ResourceManager.GetString("NoMatchingLogsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is not an event provider on the {0} computer that matches &quot;{1}&quot;..
-        /// </summary>
-        internal static string NoMatchingProvidersFound {
-            get {
-                return ResourceManager.GetString("NoMatchingProvidersFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} path does not appear to be a valid log file path. Specify a valid file system path..
-        /// </summary>
-        internal static string NotAFileSystemPath {
-            get {
-                return ResourceManager.GetString("NotAFileSystemPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} file does not appear to be a valid log file. Specify only .evtx, .etl, or .evt files as values of the Path parameter..
-        /// </summary>
-        internal static string NotALogFile {
-            get {
-                return ResourceManager.GetString("NotALogFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A null value was encountered in the {0} hash table key. Null values are not permitted..
-        /// </summary>
-        internal static string NullNotAllowedInHashtable {
-            get {
-                return ResourceManager.GetString("NullNotAllowedInHashtable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Internal privilegs API call failed. Error: {0:x8}..
+        ///   Looks up a localized string similar to Internal privileges API call failed. Error: {0:x8}..
         /// </summary>
         internal static string PrivilegesApiError {
             get {
                 return ResourceManager.GetString("PrivilegesApiError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} provider writes events to the {1} log..
-        /// </summary>
-        internal static string ProviderLogLink {
-            get {
-                return ResourceManager.GetString("ProviderLogLink", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not retrieve information about the {0} provider. Error: {1}..
-        /// </summary>
-        internal static string ProviderMetadataUnavailable {
-            get {
-                return ResourceManager.GetString("ProviderMetadataUnavailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constructed structured query:
-        ///{0}..
-        /// </summary>
-        internal static string QueryTrace {
-            get {
-                return ResourceManager.GetString("QueryTrace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified providers do not write events to the {0} log. This log will be ignored..
-        /// </summary>
-        internal static string SpecifiedProvidersDontWriteToLog {
-            get {
-                return ResourceManager.GetString("SpecifiedProvidersDontWriteToLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} event log file can be read only in the forward chronological order because it is an .etl or an .evt file. To see events from the {0} event log, use the Oldest parameter in the command..
-        /// </summary>
-        internal static string SpecifyOldestForEtlEvt {
-            get {
-                return ResourceManager.GetString("SpecifyOldestForEtlEvt", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} event log can be read only in the forward chronological order because it is an analytical or a debug log. To see events from the {0} event log, use the Oldest parameter in the command..
-        /// </summary>
-        internal static string SpecifyOldestForLog {
-            get {
-                return ResourceManager.GetString("SpecifyOldestForLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timestamp.
-        /// </summary>
-        internal static string Timestamp {
-            get {
-                return ResourceManager.GetString("Timestamp", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Microsoft.
-        /// </summary>
-        internal static string Vendor {
-            get {
-                return ResourceManager.GetString("Vendor", resourceCulture);
             }
         }
     }
