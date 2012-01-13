@@ -10,27 +10,10 @@ namespace ServiceChassis
 	public class TaskPoolManager
 	{
 		protected static readonly Logger _log = LogManager.GetCurrentClassLogger();
-		//public event EventHandler<TaskProgressChangedEventArgs> ProgressChanged;
 		private ConcurrentBag<CancellableTask> _tasks = new ConcurrentBag<CancellableTask>();
 
 		public TaskPoolManager()
-		{
-			/*
-			//relays backgroundIndexer progress events to client code -- in a nicer way
-			backgroundWorker.ProgressChanged += (sender, e) =>
-			{
-				if (null != ProgressChanged)
-					ProgressChanged(this, new TaskProgressChangedEventArgs(e.ProgressPercentage, (TaskProgress)e.UserState));
-			};
-			//i don't believe this actually is necessary to implement, since we're already exception handling in _DoWork
-			backgroundWorker.RunWorkerCompleted += (sender, e) =>
-			{
-				//this can be called when our background thread craps out and dies ;0
-				if (!e.Cancelled && null != e.Error)
-					_log.ErrorException("Unhandled Exception caused in backgroundIndexer_DoWork()", e.Error);
-			};
-			*/
-		}
+		{ }
 
 		public void EnqueTask(CancellableTask task)
 		{
