@@ -66,7 +66,7 @@ function Run-ServiceInstaller()
 {
 	Set-Alias installutil $Env:windir\Microsoft.NET\Framework\v4.0.30319\installutil.exe
 	$servicePath = "${Env:ProgramFiles}\PerfTap\PerfTap.WindowsServiceHost.exe"
-	if ((Get-Service PerfTap -ErrorAction SilentlyContinue) -eq $null)
+	if ((Get-Service PerfTap -ErrorAction SilentlyContinue) -ne $null)
 	{
 		installutil /u """$servicePath"""
 	}
