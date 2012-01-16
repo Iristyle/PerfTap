@@ -16,6 +16,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfTap.Tests", "..\tests\PerfTap.Tests\PerfTap.Tests.csproj", "{891D0AD9-D10D-4255-9BA8-9E106AC19C66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installation", "Installation", "{D05923E5-12CD-4192-BDF0-DDC2F6F34BCC}"
+	ProjectSection(SolutionItems) = preProject
+		..\InstallPerfTap.ps1 = ..\InstallPerfTap.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{47813E03-3A19-40AE-917B-1E6B5611E2F2}"
 	ProjectSection(SolutionItems) = preProject
@@ -78,7 +81,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		CodeStyleEnforcer_Active = 0
 		CodeStyleEnforcer_RulesLocation = 
+		CodeStyleEnforcer_Active = 0
 	EndGlobalSection
 EndGlobal
