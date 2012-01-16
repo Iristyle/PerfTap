@@ -27,6 +27,7 @@ using System.Reflection;
 
 			return File.ReadAllLines(filePath)
 				.Where(line => !line.StartsWith("#") && !string.IsNullOrWhiteSpace(line))
+				.Select(line => line.Trim())
 				.Distinct(StringComparer.CurrentCultureIgnoreCase)
 				.OrderBy(line => line)
 				.ToList();

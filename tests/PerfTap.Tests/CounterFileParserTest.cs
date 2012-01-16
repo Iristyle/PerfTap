@@ -19,6 +19,29 @@ namespace PerfTap.Tests
 	public class CounterFileParserTest
 	{
 		[Fact]
+		public void ReadCountersFromFile_StripsLeadingAndTrailingWhitespace()
+		{
+			StringBuilder text = new StringBuilder();
+			string filePath = Path.GetTempFileName();
+
+			try
+			{
+				text.AppendLine("  foo");
+				text.AppendLine("bar\t");
+				text.AppendLine(" \tfubar\t ");
+
+				File.WriteAllText(filePath, text.ToString());
+
+				var lines = CounterFileParser.ReadCountersFromFile(filePath);
+				Assert.Empty(lines.Except(new [] { "foo", "bar", "fubar" }));
+			}
+			finally
+			{
+				File.Delete(filePath);
+			}
+		}
+
+		[Fact]
 		public void ReadCountersFromFile_ParsesTextCorrectly()
 		{
 			StringBuilder text = new StringBuilder();

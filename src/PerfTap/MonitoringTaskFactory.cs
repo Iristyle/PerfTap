@@ -37,7 +37,7 @@ namespace PerfTap
 			_counterSamplingConfig = counterSamplingConfig;
 			_counterPaths = counterSamplingConfig.DefinitionFilePaths
 				.SelectMany(path => CounterFileParser.ReadCountersFromFile(path.Path))
-				.Union(_counterSamplingConfig.CounterNames.Select(name => name.Name))
+				.Union(_counterSamplingConfig.CounterNames.Select(name => name.Name.Trim()))
 				.Distinct(StringComparer.CurrentCultureIgnoreCase)
 				.ToList();
 			_metricPublishingConfig = metricPublishingConfig;
