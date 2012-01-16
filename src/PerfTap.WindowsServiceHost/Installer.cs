@@ -11,7 +11,7 @@ namespace PerfTap.WindowsServiceHost
 		{
 			InitializeComponent();
 
-			var processInstaller = new ServiceProcessInstaller { Account = ServiceAccount.NetworkService };
+			var processInstaller = new ServiceProcessInstaller { Account = ServiceAccount.LocalSystem };
 			var serviceInstaller = new ServiceInstaller()
 			{
 				StartType = ServiceStartMode.Automatic,
