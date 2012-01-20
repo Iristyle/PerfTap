@@ -34,7 +34,7 @@ function Merge-Parameters()
 		CounterNames = @()
 	}
 	
-	$allowedKeys = ($defaults | Select -ExpandProperty Keys) + @('Server')
+	$allowedKeys = ($defaults | Select -ExpandProperty Keys) + @('HostName','Format')
 	$Hash | Select -ExpandProperty Keys | 
 	% {
 		if (-not $allowedKeys -contains $_)
@@ -89,7 +89,7 @@ function Modify-ConfigFile()
 
 	    [parameter(Mandatory=$true)]
 	    [string]
-	    $Server,
+	    $HostName,
 	    
 	    [parameter(Mandatory=$false)]
 	    [int]
@@ -104,6 +104,10 @@ function Modify-ConfigFile()
 	    [string]
 	    [ValidatePattern('^[^!\s;:/\.\(\)\\#%\$\^]+$|^$')]
 	    $Key = ''
+
+		[ValidateSet("StatsD","StatSite")] 
+		[string]
+		$Format
 	)
 
 	$path = "${Env:ProgramFiles}\PerfTap\PerfTap.WindowsServiceHost.exe.config"
@@ -148,7 +152,8 @@ function Modify-ConfigFile()
 	
 	$xml.configuration.perfTapPublishing.SetAttribute("prefixKey",$Key)
 	$xml.configuration.perfTapPublishing.SetAttribute("port",$Port)
-	$xml.configuration.perfTapPublishing.SetAttribute("server",$Server)	
+	$xml.configuration.perfTapPublishing.SetAttribute("hostName",$HostName)	
+	$xml.configuration.perfTapPublishing.SetAttribute("format",$Format)	
 	
 	$xml.Save($path)
 }
@@ -157,7 +162,7 @@ function Install-Service()
 {    
 	[CmdletBinding()]
 	param
-	(        
+	(   		     
 	    [parameter(Mandatory=$true)]
 		[AllowEmptyCollection()]
 	    [string[]]
@@ -169,7 +174,7 @@ function Install-Service()
 
 	    [parameter(Mandatory=$true)]
 	    [string]
-	    $Server,
+	    $HostName,
 	    
 	    [parameter(Mandatory=$false)]
 	    [int]
@@ -183,7 +188,11 @@ function Install-Service()
 	    [parameter(Mandatory=$false)]
 	    [string]
 	    [ValidatePattern('^[^!\s;:/\.\(\)\\#%\$\^]+$|^$')]
-	    $Key = ''
+	    $Key = '',
+
+		[ValidateSet("StatsD","StatSite")] 
+		[string]
+		$Format
 	)
 	
     $executionPolicy  = (Get-ExecutionPolicy)
@@ -209,7 +218,7 @@ For more information execute:
 		}
 		Extract-Zip
 		Run-ServiceInstaller
-		Modify-ConfigFile -Key $Key -Port $Port -SampleInterval $SampleInterval -Server $Server `
+		Modify-ConfigFile -Key $Key -Port $Port -SampleInterval $SampleInterval -HostName $HostName `
 			-CounterNames $CounterNames -DefinitionPaths $DefinitionPaths
 		Start-Service PerfTap	
 	}

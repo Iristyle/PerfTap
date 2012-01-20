@@ -12,6 +12,7 @@ namespace PerfTap
 	using System.Linq;
 	using System.Text;
 	using System.Text.RegularExpressions;
+	using NanoTube.Support;
 	using PerfTap.Counter;
 
 	/// <summary>

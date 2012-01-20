@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NanoTube">
+      <HintPath>..\packages\NanoTube.0.1.0.0\lib\net40-Client\NanoTube.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
     </Reference>
@@ -54,8 +57,6 @@
     <Compile Include="Configuration\ICounterSamplingConfiguration.cs" />
     <Compile Include="Configuration\ICounterDefinitionsFilePath.cs" />
     <Compile Include="Configuration\ICounterName.cs" />
-    <Compile Include="Configuration\IMetricPublishingConfiguration.cs" />
-    <Compile Include="Configuration\MetricPublishingConfiguration.cs" />
     <Compile Include="CounterFileParser.cs" />
     <Compile Include="Counter\CounterPathBuilder.cs" />
     <Compile Include="Interop\CounterInfo.cs" />
@@ -69,7 +70,6 @@
     <Compile Include="Counter\PerfmonCounterReader.cs" />
     <Compile Include="Counter\PerfomanceCounterSample.cs" />
     <Compile Include="Counter\PerformanceCounterSampleSet.cs" />
-    <Compile Include="DateTimeExtensions.cs" />
     <Compile Include="Interop\Apis.cs" />
     <Compile Include="Interop\PdhFormat.cs" />
     <Compile Include="Interop\PdhHelper.cs" />
@@ -78,10 +78,7 @@
     <Compile Include="Interop\PdhSafeQueryHandle.cs" />
     <Compile Include="Interop\PDH_COUNTER_PATH_ELEMENTS.cs" />
     <Compile Include="Interop\Win32Results.cs" />
-    <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="MonitoringTaskFactory.cs" />
-    <Compile Include="Net\PacketBuilder.cs" />
-    <Compile Include="Net\PoolAwareSocketAsyncEventArgs.cs" />
     <Compile Include="Counter\PerformanceCounterSamplesExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GetEventResources.Designer.cs">
@@ -89,8 +86,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>GetEventResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SimpleObjectPool.cs" />
-    <Compile Include="Net\UdpMessenger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="CounterDefinitions\aspnet.counters">

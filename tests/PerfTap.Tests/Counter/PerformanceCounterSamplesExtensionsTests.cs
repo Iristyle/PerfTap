@@ -8,11 +8,12 @@ namespace PerfTap.Counter.Tests
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Diagnostics;
 	using System.Linq;
 	using System.Text;
-using Xunit;
+	using NanoTube.Support;
 	using PerfTap;
-	using System.Diagnostics;
+	using Xunit;
 	using Xunit.Extensions;
 
 	/// <summary>

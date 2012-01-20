@@ -11,10 +11,11 @@ namespace PerfTap
 	using System.Linq;
 	using System.Threading;
 	using System.Threading.Tasks;
+	using NanoTube.Configuration;
+	using NanoTube.Linq;
+	using NanoTube.Net;
 	using PerfTap.Configuration;
 	using PerfTap.Counter;
-	using PerfTap.Linq;
-	using PerfTap.Net;
 
 	/// <summary>
 	/// TODO: Update summary.
@@ -48,7 +49,7 @@ namespace PerfTap
 			return new Task(() =>
 			{
 				var reader = new PerfmonCounterReader();
-				using (var messenger = new UdpMessenger(_metricPublishingConfig.Server, _metricPublishingConfig.Port))
+				using (var messenger = new UdpMessenger(_metricPublishingConfig.HostName, _metricPublishingConfig.Port))
 				{
 					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, cancellationToken)
 						.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))
@@ -66,7 +67,7 @@ namespace PerfTap
 				{
 					var reader = new PerfmonCounterReader();
 
-					using (var messenger = new UdpMessenger(_metricPublishingConfig.Server, _metricPublishingConfig.Port))
+					using (var messenger = new UdpMessenger(_metricPublishingConfig.HostName, _metricPublishingConfig.Port))
 					{
 						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, maximumSamples, cancellationToken)
 							.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))

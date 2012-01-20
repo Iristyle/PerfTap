@@ -31,15 +31,16 @@ At a PowerShell admin prompt, installation is as easy as this (long) one-liner, 
 
 Alternatively, specify any or all of the configuration options.
 
-    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1')) -Args @{Server='server.addr';Port=8125;Key='Key';SampleInterval='00:00:01';DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters';CounterNames='\Processor(*)\% Processor Time';}
+    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1')) -Args @{HostName='server.addr';Port=8125;Key='Key';SampleInterval='00:00:01';Format='StatSite';DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters';CounterNames='\Processor(*)\% Processor Time';}
 
 Or if readability is your thing:
 
     $config = @{
-        Server = 'server.addr'; 
+        HostName = 'server.addr'; 
         Port = 8125; 
         Key = 'Key'; 
         SampleInterval = '00:00:01'; 
+        Format = 'StatSite';
         DefinitionPaths = 'CounterDefinitions\system.counters','CounterDefinitions\webservice.counters'; 
         CounterNames = '\Processor(*)\% Processor Time';
     }
@@ -51,7 +52,7 @@ Or if readability is your thing:
 
 Since PowerShell binds parameters passed in -ArgumentList by order, a single hash object is specified as the lone parameter.
 
-For hash values not supplied the following defaults are used. Server is required.
+For hash values not supplied the following defaults are used. HostName and Format are required.  Format can be either 'StatsD' or 'StatSite'
 
 * Port - 8125
 * Key - (empty)
@@ -102,7 +103,8 @@ A simple XML file controls what counters are enabled, how often they're sampled,
   </perfTapCounterSampling>
   <perfTapPublishing prefixKey="PerfTap"
                     port="8125"
-                    server="foo.bar.com"
+                    hostName="foo.bar.com"
+                    format="StatSite"
     />
 </configuration>
 ```

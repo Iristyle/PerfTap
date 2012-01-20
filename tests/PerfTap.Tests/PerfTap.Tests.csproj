@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NanoTube">
+      <HintPath>..\..\src\packages\NanoTube.0.1.0.0\lib\net40-Client\NanoTube.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -57,9 +60,7 @@
     <Compile Include="Counter\PerfmonCounterReaderTests.cs" />
     <Compile Include="Counter\PerformanceCounterSamplesExtensionsTests.cs" />
     <Compile Include="Interop\PdhHelperTests.cs" />
-    <Compile Include="Linq\LinqExtensionsTests.cs" />
     <Compile Include="MonitoringTaskFactoryTest.cs" />
-    <Compile Include="Net\PacketBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

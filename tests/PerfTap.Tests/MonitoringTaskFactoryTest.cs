@@ -13,6 +13,7 @@ namespace PerfTap.Tests
 	using System.Net.Sockets;
 	using System.Threading;
 	using System.Threading.Tasks;
+	using NanoTube.Configuration;
 	using PerfTap.Configuration;
 	using Xunit;
 
@@ -33,10 +34,10 @@ namespace PerfTap.Tests
 			SampleInterval = TimeSpan.FromSeconds(1)
 		};
 
-		IMetricPublishingConfiguration reportingConfig = new Configuration.MetricPublishingConfiguration()
+		IMetricPublishingConfiguration reportingConfig = new MetricPublishingConfiguration()
 		{
 			PrefixKey = "test",
-			Server = "localhost"
+			HostName = "localhost"
 		};
 
 		public MonitoringTaskFactoryTest()

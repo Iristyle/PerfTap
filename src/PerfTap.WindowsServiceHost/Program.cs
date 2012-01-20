@@ -6,6 +6,7 @@
 	using System.ServiceProcess;
 	using System.Threading;
 	using NLog;
+	using NanoTube.Configuration;
 	using PerfTap.Configuration;
 	using ServiceChassis;
 
