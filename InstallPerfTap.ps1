@@ -10,7 +10,7 @@ $latestBuild = 'https://github.com/downloads/EastPoint/PerfTap/PerfTap-0.1.1.zip
 
 function Test-IsAdmin   
 {  
-	$identity = [Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent();
+	$identity = [Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()
     If (-NOT $identity.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
     {  
 		throw 'You are not currently running this installation under an Administrator account.  Installation aborted!'
@@ -103,7 +103,7 @@ function Modify-ConfigFile()
 	    [parameter(Mandatory=$false)]
 	    [string]
 	    [ValidatePattern('^[^!\s;:/\.\(\)\\#%\$\^]+$|^$')]
-	    $Key = ''
+	    $Key = '',
 
 		[ValidateSet("StatsD","StatSite")] 
 		[string]
