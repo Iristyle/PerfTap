@@ -13,6 +13,8 @@ namespace PerfTap
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using NanoTube.Support;
+	using NanoTube.Core;
+	using NanoTube;
 	using PerfTap.Counter;
 
 	/// <summary>
@@ -20,24 +22,20 @@ namespace PerfTap
 	/// </summary>
 	public static class PerformanceCounterSamplesExtensions
 	{
-		private static Regex _validKey = new Regex(@"^[^!\s;:/\.\(\)\\#%\$\^]+$", RegexOptions.Compiled);
 		private const string _keyValue = "kv",
 			_timer = "ms",
 			_performanceCounter = "c",
 			_separator = "\n",
 			_badChars = " ;:/.()*";
 
-		public static IEnumerable<string> ToGraphiteString(this IEnumerable<PerformanceCounterSample> performanceCounters, string key)
+		public static IEnumerable<IMetric> ToMetrics(this IEnumerable<PerformanceCounterSample> performanceCounters)
 		{
 			if (null == performanceCounters)
-				{ throw new ArgumentNullException("performanceCounter"); }
-			if (!string.IsNullOrEmpty(key) && !_validKey.IsMatch(key))
-				{ throw new ArgumentException("Key contains invalid characters", "key"); }
+			{ throw new ArgumentNullException("performanceCounter"); }
 
-			var metric = new StringBuilder(150);
-			string prefix = string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim() + ".";
-			string type = _keyValue;
 
+			var metricName = new StringBuilder(150);
+			IMetric metric;
 			foreach (var counter in performanceCounters)
 			{
 				//http://msdn.microsoft.com/en-us/library/system.diagnostics.performancecountertype(v=VS.85).aspx
@@ -74,49 +72,44 @@ namespace PerfTap
 					case PerformanceCounterType.Timer100Ns:
 					case PerformanceCounterType.Timer100NsInverse:
 					default:
-						type = _keyValue;
+						var newMetric = new KeyValue();
+						newMetric.Value = counter.CookedValue;
+						newMetric.Timestamp = counter.Timestamp;
+						metric = newMetric;
 						break;
 
 					//timers
 					case PerformanceCounterType.AverageTimer32:
 					case PerformanceCounterType.ElapsedTime:
-						type = _timer;
+						var newTiming = new Timing();
+						newTiming.Duration = counter.CookedValue;
+						metric = newTiming;
 						break;
 				}
+				metricName.Remove(0, metricName.Length);	//clear the buffer
+				var path = counter.Path.ToLower();
+				metricName.Append(path);
 
-				//https://github.com/kiip/statsite
-				//key:value|type[|@flag]
-				metric.Remove(0, metric.Length);	//clear the buffer
-				metric.Append(counter.Path.ToLower());
-
-				metric.Replace(@"\\", string.Empty);
+				metricName.Replace(@"\\", string.Empty);
 
 				if (null != counter.InstanceName)
 				{
 					string instanceName = counter.InstanceName.ToLower();
-					metric.Replace(String.Format(@"({0})\", instanceName), String.Format(@"\{0}\", instanceName));
+					metricName.Replace(String.Format(@"({0})\", instanceName), String.Format(@"\{0}\", instanceName));
 				}
 
-				for (int i = 0; i < metric.Length; ++i)
+				for (int i = 0; i < metricName.Length; ++i)
 				{
-					if (_badChars.Contains(metric[i])) { metric[i] = '_'; }
+					if (_badChars.Contains(metricName[i])) { metricName[i] = '_'; }
 				}
 
-				metric.Replace('\\', '.');
-				metric.Replace("#", "num");
-				metric.Replace("%", "pct");
-				if (!string.IsNullOrEmpty(prefix)) { metric.Insert(0, prefix); }
+				metricName.Replace('\\', '.');
+				metricName.Replace("#", "num");
+				metricName.Replace("%", "pct");
 
-				metric.AppendFormat(":{0:0.###}|{1}", counter.CookedValue, type);
-
-				if (type == _keyValue)
-				{
-					metric.AppendFormat("|@{0}", counter.Timestamp.AsUnixTime());
-				}
-
-				yield return metric.ToString();
+				metric.Key = metricName.ToString();
+				yield return metric;
 			}
 		}
-		//[String]::Join($Separator, $formatted)
 	}
 }
