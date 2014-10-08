@@ -56,6 +56,14 @@ namespace PerfTap.Configuration
 			get { return new ReadOnlyCollection<ICounterName>(CounterDefinitions.OfType<ICounterName>().ToList() ?? (IList<ICounterName>)new ICounterName[0]); }
 		}
 
+		/// <summary>	Add the instance name in the metrics reported. </summary>
+		/// <value>	true or false. </value>
+		[ConfigurationProperty("addInstanceNameToMetrics", IsRequired = false, DefaultValue = "true")]
+		public bool AddInstanceNameToMetrics
+		{
+			get { return (bool)this["addInstanceNameToMetrics"]; }
+			set { this["addInstanceNameToMetrics"] = value; }
+		}
 		//TODO: 1-9-2012 -- add error handling to ensure that there's always at least a set of definition paths OR counter definitions supplied by the user
 	}
 }

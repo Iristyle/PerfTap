@@ -28,7 +28,7 @@ namespace PerfTap
 			_separator = "\n",
 			_badChars = " ;:/.()*";
 
-		public static IEnumerable<IMetric> ToMetrics(this IEnumerable<PerformanceCounterSample> performanceCounters)
+		public static IEnumerable<IMetric> ToMetrics(this IEnumerable<PerformanceCounterSample> performanceCounters, bool addInstance)
 		{
 			if (null == performanceCounters)
 			{ throw new ArgumentNullException("performanceCounter"); }
@@ -88,6 +88,10 @@ namespace PerfTap
 				}
 				metricName.Remove(0, metricName.Length);	//clear the buffer
 				var path = counter.Path.ToLower();
+				if (!addInstance)
+				{
+					path = path.Substring(path.IndexOf('\\', 2) + 1);
+				}
 				metricName.Append(path);
 
 				metricName.Replace(@"\\", string.Empty);

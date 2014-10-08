@@ -52,7 +52,7 @@ namespace PerfTap
 				using (var messenger = new MetricClient(_metricPublishingConfig))
 				{
 					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, cancellationToken)
-						.SelectMany(set => set.CounterSamples.ToMetrics())
+						.SelectMany(set => set.CounterSamples.ToMetrics(_counterSamplingConfig.AddInstanceNameToMetrics))
 						.Chunk(10))
 					{
 						messenger.Send(metricBatch);
@@ -63,14 +63,14 @@ namespace PerfTap
 
 		public Task CreateTask(CancellationToken cancellationToken, int maximumSamples)
 		{
-			return new Task(() => 
+			return new Task(() =>
 				{
 					var reader = new PerfmonCounterReader();
 
 					using (var messenger = new MetricClient(_metricPublishingConfig))
 					{
 						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, maximumSamples, cancellationToken)
-							.SelectMany(set => set.CounterSamples.ToMetrics())
+							.SelectMany(set => set.CounterSamples.ToMetrics(_counterSamplingConfig.AddInstanceNameToMetrics))
 							.Chunk(10))
 						{
 							messenger.Send(metricBatch);
