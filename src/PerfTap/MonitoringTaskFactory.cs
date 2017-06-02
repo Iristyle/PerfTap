@@ -4,79 +4,92 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using JustEat.StatsD;
+using PerfTap.Configuration;
+using PerfTap.Counter;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+
 namespace PerfTap
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using NanoTube.Configuration;
-	using NanoTube.Linq;
-	using NanoTube.Net;
-	using PerfTap.Configuration;
-	using PerfTap.Counter;
 
-	/// <summary>
-	/// TODO: Update summary.
-	/// </summary>
-	public class MonitoringTaskFactory
-	{
-		private readonly ICounterSamplingConfiguration _counterSamplingConfig;
-		private readonly IMetricPublishingConfiguration _metricPublishingConfig;
-		private readonly List<string> _counterPaths;
+    /// <summary>
+    /// TODO: Update summary.
+    /// </summary>
+    public class MonitoringTaskFactory
+    {
+        private readonly ICounterSamplingConfiguration _counterSamplingConfig;
+        private readonly MetricPublishingConfiguration _metricPublishingConfig;
+        private readonly List<string> _counterPaths;
 
-		/// <summary>
-		/// Initializes a new instance of the MonitoringTaskFactory class.
-		/// </summary>
-		/// <param name="counterSamplingConfig"></param>
-		public MonitoringTaskFactory(ICounterSamplingConfiguration counterSamplingConfig, IMetricPublishingConfiguration metricPublishingConfig)
-		{
-			if (null == counterSamplingConfig) { throw new ArgumentNullException("counterSamplingConfig"); }
-			if (null == metricPublishingConfig) { throw new ArgumentNullException("metricPublishingConfig"); }
+        private JustEat.StatsD.IStatsDPublisher _publisher;
 
-			_counterSamplingConfig = counterSamplingConfig;
-			_counterPaths = counterSamplingConfig.DefinitionFilePaths
-				.SelectMany(path => CounterFileParser.ReadCountersFromFile(path.Path))
-				.Union(_counterSamplingConfig.CounterNames.Select(name => name.Name.Trim()))
-				.Distinct(StringComparer.CurrentCultureIgnoreCase)
-				.ToList();
-			_metricPublishingConfig = metricPublishingConfig;
-		}
+        /// <summary>
+        /// Initializes a new instance of the MonitoringTaskFactory class.
+        /// </summary>
+        /// <param name="counterSamplingConfig"></param>
+        public MonitoringTaskFactory(ICounterSamplingConfiguration counterSamplingConfig, MetricPublishingConfiguration metricPublishingConfig)
+        {
+            if (null == counterSamplingConfig) { throw new ArgumentNullException("counterSamplingConfig"); }
+            if (null == metricPublishingConfig) { throw new ArgumentNullException("metricPublishingConfig"); }
 
-		public Task CreateContinuousTask(CancellationToken cancellationToken)
-		{
-			return new Task(() =>
-			{
-				var reader = new PerfmonCounterReader();
-				using (var messenger = new UdpMessenger(_metricPublishingConfig.HostName, _metricPublishingConfig.Port))
-				{
-					foreach (var metricBatch in reader.StreamCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, cancellationToken)
-						.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))
-						.Chunk(10))
-					{
-						messenger.SendMetrics(metricBatch);
-					}
-				}
-			}, cancellationToken);
-		}
+            _counterSamplingConfig = counterSamplingConfig;
 
-		public Task CreateTask(CancellationToken cancellationToken, int maximumSamples)
-		{
-			return new Task(() => 
-				{
-					var reader = new PerfmonCounterReader();
+            _counterPaths = counterSamplingConfig.DefinitionFilePaths
+                .SelectMany(path => CounterFileParser.ReadCountersFromFile(path.Path))
+                .Union(_counterSamplingConfig.CounterNames.Select(name => name.Name.Trim()))
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
 
-					using (var messenger = new UdpMessenger(_metricPublishingConfig.HostName, _metricPublishingConfig.Port))
-					{
-						foreach (var metricBatch in reader.GetCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, maximumSamples, cancellationToken)
-							.SelectMany(set => set.CounterSamples.ToGraphiteString(_metricPublishingConfig.PrefixKey))
-							.Chunk(10))
-						{
-							messenger.SendMetrics(metricBatch);
-						}
-					}
-				}, cancellationToken);
-		}
-	}
+            _metricPublishingConfig = metricPublishingConfig;
+        }
+
+        public Task CreateContinuousTask(CancellationToken cancellationToken)
+        {
+            return new Task(() =>
+            {
+                var reader = new PerfmonCounterReader();
+
+                using (IStatsDPublisher publisher = new StatsDImmediatePublisher(
+                    _metricPublishingConfig.CultureInfo,
+                    _metricPublishingConfig.HostName,
+                    _metricPublishingConfig.Port,
+                    _metricPublishingConfig.PrefixKey))
+                {
+                    foreach (var metrics in reader.StreamCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, cancellationToken))
+                    {
+                        foreach (var metric in metrics.CounterSamples)
+                        {
+                            publisher.Gauge(Convert.ToInt32(metric.CookedValue), metric.Path, DateTime.Now);
+                        }
+
+                    }
+                }
+            }, cancellationToken);
+        }
+
+        public Task CreateTask(CancellationToken cancellationToken, int maximumSamples)
+        {
+            var cultureInfo = Thread.CurrentThread.CurrentCulture;
+            return new Task(() =>
+                {
+                    var reader = new PerfmonCounterReader();
+
+                    using (IStatsDPublisher publisher = new StatsDImmediatePublisher(cultureInfo, _metricPublishingConfig.HostName, _metricPublishingConfig.Port))
+                    {
+                        foreach (var metrics in reader.GetCounterSamples(_counterPaths, _counterSamplingConfig.SampleInterval, maximumSamples, cancellationToken))
+                        {
+                            foreach (var metric in metrics.CounterSamples)
+                            {
+                                publisher.Gauge(Convert.ToInt64(metric.CookedValue), metric.Path, DateTime.Now);
+                            }
+                        }
+                    }
+                }, cancellationToken);
+        }
+    }
 }
