@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Configuration;
+using System.Globalization;
 using System.Threading;
 
 namespace PerfTap
@@ -15,9 +17,9 @@ namespace PerfTap
             return new MetricPublishingConfiguration
             {
                 CultureInfo = Thread.CurrentThread.CurrentCulture,
-                PrefixKey = "WNDMTRX",
-                Port = 8125,
-                HostName = "192.168.99.100"
+                PrefixKey = ConfigurationManager.AppSettings["prefix"],
+                Port = Convert.ToInt32(ConfigurationManager.AppSettings["port"]),
+                HostName = ConfigurationManager.AppSettings["host"]
             };
         }
     }
