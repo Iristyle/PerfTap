@@ -26,8 +26,6 @@ namespace PerfTap
         private readonly MetricPublishingConfiguration _metricPublishingConfig;
         private readonly List<string> _counterPaths;
 
-        private JustEat.StatsD.IStatsDPublisher _publisher;
-
         /// <summary>
         /// Initializes a new instance of the MonitoringTaskFactory class.
         /// </summary>
@@ -64,7 +62,7 @@ namespace PerfTap
                     {
                         foreach (var metric in metrics.CounterSamples)
                         {
-                            publisher.Gauge(Convert.ToInt32(metric.CookedValue), metric.Path, DateTime.Now);
+                            WriteMetric(publisher, metric);
                         }
 
                     }
@@ -85,11 +83,18 @@ namespace PerfTap
                         {
                             foreach (var metric in metrics.CounterSamples)
                             {
-                                publisher.Gauge(Convert.ToInt64(metric.CookedValue), metric.Path, DateTime.Now);
+                                WriteMetric(publisher, metric);
                             }
                         }
                     }
                 }, cancellationToken);
         }
+
+
+        private static void WriteMetric(IStatsDPublisher publisher, PerformanceCounterSample metric)
+        {
+            publisher.Gauge(Convert.ToInt32(metric.CookedValue), metric.Path, DateTime.Now);
+        }
+
     }
 }

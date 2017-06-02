@@ -14,13 +14,15 @@ namespace PerfTap
 
         public static MetricPublishingConfiguration FromConfig()
         {
-            return new MetricPublishingConfiguration
+            var configuration = new MetricPublishingConfiguration
             {
                 CultureInfo = Thread.CurrentThread.CurrentCulture,
                 PrefixKey = ConfigurationManager.AppSettings["prefix"],
                 Port = Convert.ToInt32(ConfigurationManager.AppSettings["port"]),
                 HostName = ConfigurationManager.AppSettings["host"]
             };
+
+            return configuration;
         }
     }
 }

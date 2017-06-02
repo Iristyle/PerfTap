@@ -5,17 +5,17 @@
 // -----------------------------------------------------------------------
 
 using JustEat.StatsD;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using PerfTap.Counter;
 
 namespace PerfTap
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using NanoTube.Support;
-    using PerfTap.Counter;
+
 
     /// <summary>
     /// TODO: Update summary.
