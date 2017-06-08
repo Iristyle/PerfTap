@@ -332,6 +332,7 @@ namespace PerfTap.Interop
 		{
 			this._firstRead.Wait();
 			long fileTimeStamp = 0;
+
 			uint returnCode = this._isPreVista ? Apis.PdhCollectQueryData(this._safeQueryHandle)
 				: Apis.PdhCollectQueryDataWithTime(this._safeQueryHandle, ref fileTimeStamp);
 
@@ -339,6 +340,7 @@ namespace PerfTap.Interop
 			{
 				return null;
 			}
+
 			if (returnCode != PdhResults.PDH_CSTATUS_VALID_DATA)
 			{
 				//this makes sure next call to ReadNextSet doesn't examine the data, and just returns null
@@ -379,6 +381,7 @@ namespace PerfTap.Interop
 			{
 				Array.Resize(ref counterSamples, samplesRead);	
 			}
+
 			return new PerformanceCounterSampleSet(this._isPreVista ? counterSamples[samplesRead].Timestamp : now, counterSamples);
 		}
 

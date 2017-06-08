@@ -7,16 +7,13 @@ We searched high and low for something Windows based, but it would appear that t
 
 So we built our own.
 
-Designed for compatibility with a StatsD compatible listener, such as:
-
-* [StatsD](https://github.com/etsy/statsd) - The Etsy original, built with node.js
-* [statsite](https://github.com/kiip/statsite) - Built with Python
+Designed for compatibility with a [StatsD](https://github.com/etsy/statsd) compatible listener.
 
 ## Installation
 
 ### Requirements
 
-* .NET Framework 4+
+* .NET Framework 4.6.1
 * Windows
 * Admin rights for installing services (the service is setup to run as NETWORK SERVICE)
 * Powershell v2 required to user the one-line installer
@@ -60,14 +57,6 @@ For hash values not supplied the following defaults are used. HostName and Forma
 * DefinitionPaths - CounterDefinitions\system.counters
 * CounterNames - (empty)
 
-### Simple Remote Installation via WinRM
-
-Alternatively, a WinRM based installation method is supported, so that many machines may be installed to at once.
-
-    TODO: 
-
-
-
 ### Manual Installation
 
 The latest binaries may simply be dropped in a folder, and installutil can be run against them.
@@ -87,6 +76,13 @@ A simple XML file controls what counters are enabled, how often they're sampled,
     <section name="perfTapCounterSampling" type="PerfTap.Configuration.CounterSamplingConfiguration, PerfTap" />
     <section name="perfTapPublishing" type="PerfTap.Configuration.MetricPublishingConfiguration, PerfTap"/>
   </configSections>
+  
+   <appSettings>
+    <add key="port" value="8125"/>
+    <add key="host" value="192.168.99.100"/>
+    <add key="prefix" value="PerfTap"/>
+  </appSettings>
+  
   <perfTapCounterSampling sampleInterval="00:00:01">
     <definitionFilePaths>
       <definitionFile path="CounterDefinitions\\system.counters" />
@@ -101,11 +97,7 @@ A simple XML file controls what counters are enabled, how often they're sampled,
     </counterNames>
     -->
   </perfTapCounterSampling>
-  <perfTapPublishing prefixKey="PerfTap"
-                    port="8125"
-                    hostName="foo.bar.com"
-                    format="StatSite"
-    />
+
 </configuration>
 ```
 
@@ -161,18 +153,7 @@ The first take at this application was written in PowerShell.  The thought was t
 
 As it turned out, the PowerShell code does hide quite a bit of useful heavy lifting under [Get-Counter](http://technet.microsoft.com/en-us/library/dd367892.aspx).  Reflector'd Pcode from Microsoft.PowerShell.Commands.Diagnostics.dll (can I say that?) served as a rough inspiration for the counter reading pieces of this code.  More than anything, it served as a bit of a shortcut for understanding what Win32 API calls were required to query the local system.  The code however bears no resemblance to their original code -- their implementation was written from a very Win32 API / C++ style slant, littered with HRESULT return codes and lots of yucky out and ref parameters.  This code base use modern language features to make the code simpler / more readable / maintainable going forward.
 
-## Future Improvements
-
-* This probably would have been a good application to build in F# - oops.
-* Configurable sample intervals for counters on an individual basis.
-* Add a raw Graphite publisher that doesn't go through StatsD first
-* Configuration options for packet batching
-* Better configuration file error checking
-* Potentially break out the ServiceChassis piece to a separate NuGet package - or integrate with what the [TopShelf](http://topshelf-project.com/) guys have done.
-* Provide uninstall and upgrade (that won't modify config file) option through script
-
 ## Contributing
-
 Fork the code, and submit a pull request!  
 
 Any useful changes are welcomed.  If you have an idea you'd like to see implemented that strays far from the simple spirit of the application, ping us first so that we're on the same page.
