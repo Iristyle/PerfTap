@@ -6,7 +6,7 @@ param
 
 Set-StrictMode -version Latest
 
-$latestBuild = 'https://github.com/downloads/EastPoint/PerfTap/PerfTap-0.1.1.zip'
+$latestBuild = 'https://github.com/downloads/Iristyle/PerfTap/PerfTap-0.1.1.zip'
 
 function Test-IsAdmin   
 {  
