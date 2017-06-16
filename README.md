@@ -27,11 +27,11 @@ Sorry Mono, this is the Win32 only club -- besides, Linux distros already have b
 
 At a PowerShell admin prompt, installation is as easy as this (long) one-liner, which will prompt for the server name and assume all other defaults.
 
-    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1'))
+    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/Iristyle/PerfTap/master/InstallPerfTap.ps1'))
 
 Alternatively, specify any or all of the configuration options.
 
-    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1')) -Args @{HostName='server.addr';Port=8125;Key='Key';SampleInterval='00:00:01';Format='StatSite';DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters';CounterNames='\Processor(*)\% Processor Time';}
+    icm $executioncontext.InvokeCommand.NewScriptBlock((New-Object Net.WebClient).DownloadString('https://raw.github.com/Iristyle/PerfTap/master/InstallPerfTap.ps1')) -Args @{HostName='server.addr';Port=8125;Key='Key';SampleInterval='00:00:01';Format='StatSite';DefinitionPaths='CounterDefinitions\system.counters','CounterDefinitions\webservice.counters';CounterNames='\Processor(*)\% Processor Time';}
 
 Or if readability is your thing:
 
@@ -45,7 +45,7 @@ Or if readability is your thing:
         CounterNames = '\Processor(*)\% Processor Time';
     }
     $args = @{
-        ScriptBlock = $executioncontext.InvokeCommand.NewScriptBlock((new-object Net.WebClient).DownloadString('https://raw.github.com/EastPoint/PerfTap/master/InstallPerfTap.ps1'));
+        ScriptBlock = $executioncontext.InvokeCommand.NewScriptBlock((new-object Net.WebClient).DownloadString('https://raw.github.com/Iristyle/PerfTap/master/InstallPerfTap.ps1'));
         ArgumentList = $config
     }
     Invoke-Command @args
