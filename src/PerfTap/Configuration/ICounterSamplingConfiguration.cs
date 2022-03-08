@@ -10,5 +10,6 @@ namespace PerfTap.Configuration
 		ReadOnlyCollection<ICounterDefinitionsFilePath> DefinitionFilePaths { get; }
 		ReadOnlyCollection<ICounterName> CounterNames { get; } 
 		TimeSpan SampleInterval { get; }
+		Boolean AddInstanceNameToMetrics { get; }
 	}
 }

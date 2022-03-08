@@ -37,7 +37,7 @@ namespace PerfTap.Counter.Tests
 		public void ToGraphiteString_ThrowsOnInvalidKey(string key)
 		{
 			var samples = new [] { new PerformanceCounterSample(@"\\machine-name\memory\% committed bytes in use", null, 36.41245914, 818220, 2247088, 1, PerformanceCounterType.RawFraction, 0, 3579545, DateTime.Now, (ulong)DateTime.Now.ToFileTime(), 0) };
-			Assert.Throws<ArgumentException>(() => samples.ToGraphiteString(key).ToList());
+			Assert.Throws<ArgumentException>(() => samples.ToMetrics(true).ToList());
 		}
 
 		public static IEnumerable<object[]> ExpectedMetricConversions
@@ -81,7 +81,7 @@ namespace PerfTap.Counter.Tests
 		[PropertyData("ExpectedMetricConversions")]
 		public void ToGraphiteString_GeneratesExpectedMetrics(string key, PerformanceCounterSample sample, string expected)
 		{			
-			string converted = new [] { sample }.ToGraphiteString(key).First();
+			string converted = new [] { sample }.ToMetrics(true).First().ToString();
 			Assert.Equal(expected, converted);
 		}
 	}
