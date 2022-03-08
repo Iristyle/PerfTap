@@ -379,7 +379,7 @@ namespace PerfTap.Interop
 			{
 				Array.Resize(ref counterSamples, samplesRead);	
 			}
-			return new PerformanceCounterSampleSet(this._isPreVista ? counterSamples[samplesRead].Timestamp : now, counterSamples);
+			return new PerformanceCounterSampleSet(this._isPreVista ? counterSamples[samplesRead-1].Timestamp : now, counterSamples);
 		}
 
 		private RawCounterSample GetRawCounterSample(IntPtr counterHandle, string key, CounterInfo info, DateTime? now)
